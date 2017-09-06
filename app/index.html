@@ -49,19 +49,19 @@
           material="src:assets/grid.png; repeat:25 25"
         ></a-mixin>
         <a-mixin id="street_tile"
-          material="color:#f5f5f5"        
+          material="color:#867562"        
         ></a-mixin>
       </a-assets>
 
 <!-- north buildings -->
       <a-box id="building_north1" 
         width="16" height="10" depth="3" 
-        color="#333"
+        material="shader:flat; color:#7a766a"
         position="-7 5 -14"
       ></a-box>
       <a-box id="building_north2" 
         width="6" height="8" depth="3" 
-        color="#444"
+        material="shader:flat; color:#593e26"
         position="4 4 -14"
       ></a-box>
       <a-plane id="streetgap_north" 
@@ -72,7 +72,7 @@
       ></a-plane>
       <a-box id="building_north3" 
         width="11" height="8" depth="3"  
-        color="#222"
+        material="shader:flat; color:#5a5d50"
         position="16 4 -14"
       ></a-box>
       <a-plane id="street_north" 
@@ -85,17 +85,17 @@
 <!-- east buildings -->
       <a-box id="building_east1" 
         width="3" height="8" depth="14" 
-        color="#333"
+        material="shader:flat; color:#e3e0d9"
         position="13.25 4 0.75"
       ></a-box>
       <a-box id="building_east2" 
         width="3" height="8" depth="10" 
-        color="#222"
+        material="shader:flat; color:#e0e4dd"
         position="13.25 4 12.75"
       ></a-box>
       <a-box id="building_east3" 
         width="3" height="9" depth="8" 
-        color="#444"
+        material="shader:flat; color:#ddbda8"
         position="13.25 4.5 21.75"
       ></a-box>
       <a-plane id="street_east" 
@@ -108,22 +108,22 @@
 <!-- west buildings -->
       <a-box id="building_west1" 
         width="4" height="4" depth="14" 
-        color="#777"
+        material="shader:flat; color:#936a55"
         position="-11.75 2 0.75"
       ></a-box>
       <a-box id="building_west2" 
         width="4" height="4" depth="6.5" 
-        color="#666"
+        material="shader:flat; color:#756e64"
         position="-11.75 2 11"
       ></a-box>
       <a-box id="building_west3" 
         width="6" height="8" depth="9" 
-        color="#888"
+        material="shader:flat; color:#937459"
         position="-11 4 18.75"
       ></a-box>
       <a-box id="building_west4" 
         width="4" height="8" depth="20.5" 
-        color="#555"
+        material="shader:flat; color:#5a564b"
         position="-15.5 4 4"
       ></a-box>
 
@@ -136,17 +136,17 @@
       ></a-plane>
       <a-box id="building_south1" 
         width="9.250" height="7" depth="4" 
-        color="#777"
+        material="shader:flat; color:#a4927b"
         position="0.625 3.5 30.25"
       ></a-box>
       <a-box id="building_south2" 
         width="4" height="8" depth="4" 
-        color="#888"
+        material="shader:flat; color:#86877d"
         position="-6 4 30.25"
       ></a-box>
       <a-box id="building_south3" 
         width="16" height="4" depth="3" 
-        color="#333"
+        material="shader:flat; color:#665f56"
         position="-16 2 29.75"
       ></a-box>
 
@@ -154,13 +154,13 @@
       <a-plane id="piazza" 
         rotation="-90 0 0"
         width="15" height="14" 
-        color="#999"
+        material="shader:flat; color:#9c9695"
         position="-2.25 0 0.75"
       ></a-plane>
 
       <a-box id="piazza-level" 
         width="15" height="0.5" depth="15.5" 
-        color="#888"
+        material="shader:flat; color:#b7b1a3"
         position="-2.25 0 15.5"
       ></a-box>
 
@@ -171,290 +171,290 @@
         <a-box 
           position="-4.96875 2 1.25"
           width="3.3125" height="4" depth="2.5" 
-          color="#fff"
+          material="shader:flat; color:#fff"
           opacity="0"
         >
           <a-box 
             width="3.3125" height="0.2" depth="2.5" 
-            color="#000"
+            material="shader:flat; color:#56463a"
             position="0 2 0"
           ></a-box>  
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 -1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"
             position="1.65625 0 0"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"            
             position="-1.65625 0 0"
           >
           </a-torus>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 -1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 -1.25" 
           ></a-cylinder>
         </a-box>  
         <a-box 
           position="-4.96875 2 -1.25"
           width="3.3125" height="4" depth="2.5" 
-          color="#fff"
+          material="shader:flat; color:#fff"
           opacity="0"
         >
           <a-box 
             width="3.3125" height="0.2" depth="2.5" 
-            color="#000"
+            material="shader:flat; color:#56463a"
             position="0 2 0"
           ></a-box>  
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 -1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"
             position="1.65625 0 0"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"            
             position="-1.65625 0 0"
           >
           </a-torus>  
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 -1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 -1.25" 
           ></a-cylinder>
         </a-box>        
         <a-box 
           position="-1.65625 2 1.25"
           width="3.3125" height="4" depth="2.5" 
-          color="#fff"
+          material="shader:flat; color:#fff"
           opacity="0"
         >
           <a-box 
             width="3.3125" height="0.2" depth="2.5" 
-            color="#000"
+            material="shader:flat; color:#56463a"
             position="0 2 0"
           ></a-box>  
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 -1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"
             position="1.65625 0 0"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"            
             position="-1.65625 0 0"
           >
           </a-torus> 
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 -1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 -1.25" 
           ></a-cylinder>
         </a-box>        
         <a-box 
           position="1.65625 2 1.25"
           width="3.3125" height="4" depth="2.5" 
-          color="#fff"
+          material="shader:flat; color:#fff"
           opacity="0"
         >
           <a-box 
             width="3.3125" height="0.2" depth="2.5" 
-            color="#000"
+            material="shader:flat; color:#56463a"
             position="0 2 0"
           ></a-box>  
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 -1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"
             position="1.65625 0 0"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"            
             position="-1.65625 0 0"
           >
           </a-torus>  
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 -1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 -1.25" 
           ></a-cylinder>
         </a-box>        
         <a-box 
           position="4.96875 2 1.25"
           width="3.3125" height="4" depth="2.5" 
-          color="#fff"
+          material="shader:flat; color:#fff"
           opacity="0"
         >
           <a-box 
             width="3.3125" height="0.2" depth="2.5" 
-            color="#000"
+            material="shader:flat; color:#56463a"
             position="0 2 0"
           ></a-box>  
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.65"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             position="0 0 -1.25"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"
             position="1.65625 0 0"
           >
           </a-torus>
           <a-torus arc="180" radius-tubular="0.05"
             radius="1.25"
-            color="#333" 
+            material="shader:flat; color:#82705c" 
             rotation="0 90 0"            
             position="-1.65625 0 0"
           >
           </a-torus> 
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="1.65625 -1 -1.25" 
           ></a-cylinder>
           <a-cylinder
             radius="0.1" height="2"
-            color="#333"
+            material="shader:flat; color:#968f88"
             position="-1.65625 -1 -1.25" 
           ></a-cylinder>
         </a-box>        
@@ -467,21 +467,21 @@
         <a-cylinder id="fountain-base" 
                     height="0.1"
                     radius="3"
-                    color="#888"
+                    material="shader:flat; color:#6f7374"
                     position="0 0.05 0"
         >
         </a-cylinder>
         <a-cylinder id="fountain-basin" 
                     height="0.5"
                     radius="1.35"
-                    color="#777"
+                    material="shader:flat; color:#72614d"
                     position="0 0.25 0"
         >
         </a-cylinder>
         <a-cylinder id="fountain-center" 
                     height="1.6"
                     radius="0.15"
-                    color="#666"
+                    material="shader:flat; color:#6a5844"
                     position="0 0.8 0"
         >
         </a-cylinder>
@@ -496,7 +496,7 @@
       </a-entity>
 
       <!-- Grid -->
-      <a-sky color="#BCC6CD"></a-sky>
+      <a-sky material="shader:flat; color:#BCC6CD"></a-sky>
 
       <!-- Checkpoints -->
       <a-entity position="1 0 1">
