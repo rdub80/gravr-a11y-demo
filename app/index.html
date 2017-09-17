@@ -495,12 +495,52 @@
           <a-cursor></a-cursor>
       </a-entity>
 
+
+      <a-entity id="fountainwater"
+        geometry="primitive:box; width:0.25; height:0.25; depth:0.25;"
+        material="color:red;"
+        position="-2.25 1.75 0.75"
+
+      >
+          <a-entity lookat-txt text="value: Fountain with water flowing; align:center" scale="10 10 10" position="0 1 0"></a-entity>        
+      </a-entity>
+
+
+      <a-entity id="restaurant"
+        geometry="primitive:box; width:7; height:1; depth:1;"
+        material="color:red;"
+        position="-9 0.5 -12"
+
+      >
+          <a-entity lookat-txt text="value: People Eating; align:center" scale="10 10 10" position="0 2 0"></a-entity>        
+      </a-entity>
+
+      <a-entity id="market"
+        geometry="primitive:box; width:5; height:1; depth:1;"
+        material="color:red;"
+        position="0 0.5 20"
+
+      >
+          <a-entity lookat-txt text="value: Farmers market; align:center" scale="10 10 10" position="0 2 0"></a-entity>        
+      </a-entity>
+
       <!-- Grid -->
       <a-sky material="shader:flat; color:#BCC6CD"></a-sky>
 
       <!-- Checkpoints -->
-      <a-entity position="1 0 1">
-        <a-entity checkpoint="offset: 0 1.6 0" position="1 0 -4" mixin="check"></a-entity>
+      <a-entity position="0 0 0">
+        <a-entity id="north" checkpoint="offset: 0 1.6 0" position="-2 0 -10" mixin="check">
+          <a-entity lookat-txt text="value: North of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        </a-entity>
+        <a-entity id="south" checkpoint="offset: 0 1.6 0" position="0 0.3 14" mixin="check">
+          <a-entity lookat-txt text="value: South of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        </a-entity>
+        <a-entity id="east" checkpoint="offset: 0 1.6 0" position="9 0 0" mixin="check">
+          <a-entity lookat-txt text="value: East of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        </a-entity>
+        <a-entity id="west" checkpoint="offset: 0 1.6 0" position="-7 0 0" mixin="check">
+          <a-entity lookat-txt text="value: West of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        </a-entity>
       </a-entity>
 
     </a-scene>
