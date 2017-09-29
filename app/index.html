@@ -26,7 +26,8 @@
     <meta name="apple-mobile-web-app-capable" />
     <script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
 
-    <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
+    <script src="js/howler.min.js"></script>
+    <script src="js/sprite.js"></script>
     
     <!--build:css css/styles.min.css-->
     <link rel="stylesheet" href="css/styles.css">
@@ -488,21 +489,14 @@
       </a-entity>
 
 
-      <a-entity camera="userHeight:1.6"
-                universal-controls="movementControls: checkpoint"
-                wasd-controls
-                checkpoint-controls="mode: animate">
-          <a-cursor></a-cursor>
-      </a-entity>
-
-
       <a-entity id="fountainwater"
         geometry="primitive:box; width:0.25; height:0.25; depth:0.25;"
         material="color:red;"
         position="-2.25 1.75 0.75"
+        sound="src: url(sounds/fountain.mp3); autoplay: true; loop:true; volume:2;"
 
       >
-          <a-entity lookat-txt text="value: Fountain with water flowing; align:center" scale="10 10 10" position="0 1 0"></a-entity>        
+          <a-entity lookat-cam text="value: Fountain with water flowing; align:center" scale="10 10 10" position="0 1 0"></a-entity>        
       </a-entity>
 
 
@@ -510,37 +504,57 @@
         geometry="primitive:box; width:7; height:1; depth:1;"
         material="color:red;"
         position="-9 0.5 -12"
+        sound="src: url(sounds/cafe.mp3); autoplay: true; loop:true; volume:2;"
 
       >
-          <a-entity lookat-txt text="value: People Eating; align:center" scale="10 10 10" position="0 2 0"></a-entity>        
+          <a-entity lookat-cam text="value: People Eating; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
       </a-entity>
+
+      <a-entity id="pigeons"
+        geometry="primitive:box; width:1; height:1; depth:1;"
+        material="color:red;"
+        position="-9 0.5 11"
+
+      >
+          <a-entity lookat-cam text="value: Person feeding pigeons; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
+      </a-entity>
+
 
       <a-entity id="market"
         geometry="primitive:box; width:5; height:1; depth:1;"
         material="color:red;"
         position="0 0.5 20"
+        sound="src: url(sounds/market.mp3); autoplay: true; loop:true; volume:2;"
 
       >
-          <a-entity lookat-txt text="value: Farmers market; align:center" scale="10 10 10" position="0 2 0"></a-entity>        
+          <a-entity lookat-cam text="value: Farmers market; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
       </a-entity>
+
 
       <!-- Grid -->
       <a-sky material="shader:flat; color:#BCC6CD"></a-sky>
 
-      <!-- Checkpoints -->
+      <!-- Beacons -->
       <a-entity position="0 0 0">
-        <a-entity id="north" checkpoint="offset: 0 1.6 0" position="-2 0 -10" mixin="check">
-          <a-entity lookat-txt text="value: North of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        <a-entity id="north" beacon="description: North of the Piazza" position="-2 0 -10" mixin="check">
         </a-entity>
-        <a-entity id="south" checkpoint="offset: 0 1.6 0" position="0 0.3 14" mixin="check">
-          <a-entity lookat-txt text="value: South of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        <a-entity id="south" beacon="description: South of the Piazza" position="0 0.3 14" mixin="check">
         </a-entity>
-        <a-entity id="east" checkpoint="offset: 0 1.6 0" position="9 0 0" mixin="check">
-          <a-entity lookat-txt text="value: East of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        <a-entity id="east" beacon="description: East of the Piazza" position="9 0 0" mixin="check">
         </a-entity>
-        <a-entity id="west" checkpoint="offset: 0 1.6 0" position="-7 0 0" mixin="check">
-          <a-entity lookat-txt text="value: West of the Piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
+        <a-entity id="west" beacon="description: West of the Piazza" position="-7 0 0" mixin="check">
         </a-entity>
+      </a-entity>
+
+
+
+
+
+      <a-entity camera="userHeight:1.6"
+                universal-controls="movementControls: beacon"
+                wasd-controls
+                beacon-controls="mode: animate">
+          <a-cursor></a-cursor>
       </a-entity>
 
     </a-scene>
