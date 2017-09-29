@@ -39,10 +39,6 @@
   <body>
     <a-scene stats>
       <a-assets>
-        <a-mixin id="check"
-            geometry="primitive:cylinder; radius:0.35; height:0.1"
-            material="color:#BCC6CD"
-        ></a-mixin>
         <a-mixin id="grid"
           geometry="primitive:plane; width: 25; height: 25"
           rotation="-90 0 0"
@@ -513,7 +509,7 @@
         geometry="primitive:box; width:1; height:1; depth:1;"
         material="color:red;"
         position="-9 0.5 11"
-        sound="src: url(sounds/pigeons.mp3); autoplay: true; loop:true; volume:2;"        
+        sound="src: url(sounds/pigeons.mp3); autoplay: true; loop:true; volume:3;"        
         poi="description:A person feeding pigeons"
       >
           <a-entity lookat-cam text="value: Person feeding pigeons; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
@@ -536,13 +532,13 @@
 
       <!-- Beacons -->
       <a-entity position="0 0 0">
-        <a-entity id="north" beacon="description: North of the Piazza" position="-2 0 -10" mixin="check">
+        <a-entity id="north" beacon="description: North of the Piazza" position="-2 0 -10">
         </a-entity>
-        <a-entity id="south" beacon="description: South of the Piazza" position="0 0.3 14" mixin="check">
+        <a-entity id="south" beacon="description: South of the Piazza" position="0 0.3 14">
         </a-entity>
-        <a-entity id="east" beacon="description: East of the Piazza" position="9 0 0" mixin="check">
+        <a-entity id="east" beacon="description: East of the Piazza" position="9 0 0">
         </a-entity>
-        <a-entity id="west" beacon="description: West of the Piazza" position="-7 0 0" mixin="check">
+        <a-entity id="west" beacon="description: West of the Piazza" position="-7 0 0">
         </a-entity>
       </a-entity>
 

@@ -99,24 +99,20 @@ AFRAME.registerComponent('beacon-controls', {
     if(this.readOnce.done) return;
 
     var tts = "You're walking towards the Beacon " + text;
-	var utterThis = new SpeechSynthesisUtterance(tts);
-	var voices = synth.getVoices();
-	utterThis.voice = voices[48];
-	utterThis.pitch = 1;
-	utterThis.rate = 1;
+  	var utterThis = new SpeechSynthesisUtterance(tts);
+  	var voices = synth.getVoices();
+  	utterThis.voice = voices[48];
+  	utterThis.pitch = 1;
+  	utterThis.rate = 1;
 
-	synth.speak(utterThis);
+  	synth.speak(utterThis);
 
-	utterThis.onend = function(event) {
+  	utterThis.onend = function(event) {
     	console.log('Utterance has finished being spoken after ' + event.elapsedTime + ' milliseconds.');
-        this.readOnce.done = false;
+      this.readOnce.done = false;
   	}
-
     this.readOnce.done = true;
   }
-
-
-
 
 });
 
@@ -135,6 +131,14 @@ AFRAME.registerComponent('beacon', {
     this.offset = new THREE.Vector3();
     this.vector = new THREE.Vector3();
 
+//  adding ring platform
+    var platform = document.createElement("a-entity");
+    platform.setAttribute('geometry', `primitive: ring; radiusInner:0.65; radiusOuter:0.85;`);
+    platform.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.5;`);
+    platform.setAttribute('rotation', `-90 0 0`);
+    platform.setAttribute('position', `0 0.001 0`);
+    this.el.appendChild(platform);
+
 //  adding dynamically a large hoverzone for beacons
     var hoverArea = document.createElement("a-entity");
     hoverArea.setAttribute('geometry', `primitive: plane; width: ${this.data.hoverZone.width}; height: ${this.data.hoverZone.height};`);
@@ -151,7 +155,7 @@ AFRAME.registerComponent('beacon', {
 
 
     var lookingAt = "You are looking at the Beacon " + this.data.description;
-	this.utterLookingAt = _utterLookingAt = new SpeechSynthesisUtterance();
+	  this.utterLookingAt = _utterLookingAt = new SpeechSynthesisUtterance();
     
     this.el.addEventListener('mouseenter', function () {
 		var voices = synth.getVoices();
@@ -216,6 +220,7 @@ AFRAME.registerComponent('beacon', {
       throw new Error('No `beacon-controls` component found.');
     }
     targetEl.components['beacon-controls'].setBeacon(this.el);
+    console.dir(this.el);
   },
   getOffset: function () {
     return this.offset.copy(this.data.offset);
