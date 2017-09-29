@@ -9,7 +9,7 @@
  */
 
 // Cache references to DOM elements.
-var elms = ['waveform', 'sprite0', 'sprite1', 'sprite2', 'sprite3', 'sprite4', 'sprite5'];
+var elms = ['sprite0', 'sprite1', 'sprite2'];
 elms.forEach(function(elm) {
   window[elm] = document.getElementById(elm);
 });
@@ -128,24 +128,18 @@ Sprite.prototype = {
 };
 
 // Setup our new sprite class and pass in the options.
-var sprite = new Sprite({
-  width: [78, 60, 62, 70, 62, 1895],
-  left: [0, 342, 680, 1022, 1361],
-  src: ['../../tests/audio/sound2.webm', '../../tests/audio/sound2.mp3'],
+var spriteUI = new Sprite({
+  width: [220, 240, 300],
+  left: [40, 320, 590],
+  src: ['sounds/ui.mp3'],
   sprite: {
-    one: [0, 450],
-    two: [2000, 250],
-    three: [4000, 350],
-    four: [6000, 380],
-    five: [8000, 340],
-    beat: [10000, 11163]
+    click: [40, 220],
+    hover: [320, 240],
+    error: [590, 300]
   },
   spriteMap: {
-    sprite0: 'one',
-    sprite1: 'two',
-    sprite2: 'three',
-    sprite3: 'four',
-    sprite4: 'five',
-    sprite5: 'beat'
+    sprite0: 'click',
+    sprite1: 'hover',
+    sprite2: 'error'
   }
 });

@@ -14,7 +14,7 @@ var bar = getParameterByName('bar'); // "" (present with empty value)
 var baz = getParameterByName('baz'); // "" (present with no value)
 var qux = getParameterByName('qux'); // null (absent)
 */
-
+var synth = window.speechSynthesis;
 var EPS = 0.1;
 
 AFRAME.registerComponent('beacon-controls', {
@@ -35,6 +35,7 @@ AFRAME.registerComponent('beacon-controls', {
 
   play: function () { this.active = true; },
   pause: function () { this.active = false; },
+
 
   setBeacon: function (beacon) {
     var el = this.el;
@@ -96,9 +97,25 @@ AFRAME.registerComponent('beacon-controls', {
   },
   readOnce: function(text) {
     if(this.readOnce.done) return;
-    console.log("You're walking towards Beacon "+text);
+
+    var tts = "You're walking towards the Beacon " + text;
+	var utterThis = new SpeechSynthesisUtterance(tts);
+	var voices = synth.getVoices();
+	utterThis.voice = voices[48];
+	utterThis.pitch = 1;
+	utterThis.rate = 1;
+
+	synth.speak(utterThis);
+
+	utterThis.onend = function(event) {
+    	console.log('Utterance has finished being spoken after ' + event.elapsedTime + ' milliseconds.');
+        this.readOnce.done = false;
+  	}
+
     this.readOnce.done = true;
   }
+
+
 
 
 });
@@ -121,7 +138,7 @@ AFRAME.registerComponent('beacon', {
 //  adding dynamically a large hoverzone for beacons
     var hoverArea = document.createElement("a-entity");
     hoverArea.setAttribute('geometry', `primitive: plane; width: ${this.data.hoverZone.width}; height: ${this.data.hoverZone.height};`);
-    hoverArea.setAttribute('material', `shader: flat; side:double; opacity: 0.1; color: red`);
+    hoverArea.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.1;`);
     hoverArea.setAttribute('position', `0 ${this.data.hoverZone.height/2} 0`);
     this.el.appendChild(hoverArea);
 
@@ -131,6 +148,24 @@ AFRAME.registerComponent('beacon', {
     desc.setAttribute('scale', `10 10 10`);
     desc.setAttribute('position', `0 1 0`);
     this.el.appendChild(desc);
+
+
+    var lookingAt = "You are looking at the Beacon " + this.data.description;
+	this.utterLookingAt = _utterLookingAt = new SpeechSynthesisUtterance();
+    
+    this.el.addEventListener('mouseenter', function () {
+		var voices = synth.getVoices();
+		_utterLookingAt.text = lookingAt;
+		_utterLookingAt.voice = voices[48];
+		_utterLookingAt.pitch = 1;
+		_utterLookingAt.rate = 1;
+		synth.speak(_utterLookingAt);
+    });
+
+    this.el.addEventListener('mouseleave', function () {
+		synth.cancel();
+    });
+
   },
 
   tick: function (t) { //  orient towards camera
@@ -222,7 +257,27 @@ AFRAME.registerComponent('lookat-cam', {
 
 // Point of interest
 AFRAME.registerComponent('poi', {
+  schema: {
+    description: {default: ''}
+  },
   init: function () {
+
+    var lookingAt = "You are looking at " + this.data.description;
+	this.utterLookingAtPOI = _utterLookingAtPOI = new SpeechSynthesisUtterance();
+    
+    this.el.addEventListener('mouseenter', function () {
+		var voices = synth.getVoices();
+		_utterLookingAtPOI.text = lookingAt;
+		_utterLookingAtPOI.voice = voices[48];
+		_utterLookingAtPOI.pitch = 1;
+		_utterLookingAtPOI.rate = 1;
+		synth.speak(_utterLookingAtPOI);
+    });
+
+    this.el.addEventListener('mouseleave', function () {
+		synth.cancel();
+    });
+
 
   },
 

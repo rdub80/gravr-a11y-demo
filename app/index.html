@@ -25,9 +25,8 @@
     <meta name="description" content="GRAVR Accessibility Demo">
     <meta name="apple-mobile-web-app-capable" />
     <script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
-
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
     <script src="js/howler.min.js"></script>
-    <script src="js/sprite.js"></script>
     
     <!--build:css css/styles.min.css-->
     <link rel="stylesheet" href="css/styles.css">
@@ -494,9 +493,9 @@
         material="color:red;"
         position="-2.25 1.75 0.75"
         sound="src: url(sounds/fountain.mp3); autoplay: true; loop:true; volume:2;"
-
+        poi="description:A small fountain in the center of the piazza"
       >
-          <a-entity lookat-cam text="value: Fountain with water flowing; align:center" scale="10 10 10" position="0 1 0"></a-entity>        
+          <a-entity lookat-cam text="value: A small fountain in the center of the piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>        
       </a-entity>
 
 
@@ -505,16 +504,16 @@
         material="color:red;"
         position="-9 0.5 -12"
         sound="src: url(sounds/cafe.mp3); autoplay: true; loop:true; volume:2;"
-
+        poi="description:People sitting in an outdoors cafe"
       >
-          <a-entity lookat-cam text="value: People Eating; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
+          <a-entity lookat-cam text="value: People sitting in an outdoors cafe; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
       </a-entity>
 
       <a-entity id="pigeons"
         geometry="primitive:box; width:1; height:1; depth:1;"
         material="color:red;"
         position="-9 0.5 11"
-
+        poi="description:A person feeding pigeons"
       >
           <a-entity lookat-cam text="value: Person feeding pigeons; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
       </a-entity>
@@ -525,9 +524,9 @@
         material="color:red;"
         position="0 0.5 20"
         sound="src: url(sounds/market.mp3); autoplay: true; loop:true; volume:2;"
-
+        poi="description:A vegetable stand at farmers market"
       >
-          <a-entity lookat-cam text="value: Farmers market; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
+          <a-entity lookat-cam text="value: A vegetable stand at farmers market; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
       </a-entity>
 
 
