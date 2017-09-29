@@ -513,6 +513,7 @@
         geometry="primitive:box; width:1; height:1; depth:1;"
         material="color:red;"
         position="-9 0.5 11"
+        sound="src: url(sounds/pigeons.mp3); autoplay: true; loop:true; volume:2;"        
         poi="description:A person feeding pigeons"
       >
           <a-entity lookat-cam text="value: Person feeding pigeons; align:center" scale="5 5 5" position="0 2 0"></a-entity>        
@@ -546,14 +547,11 @@
       </a-entity>
 
 
-
-
-
       <a-entity camera="userHeight:1.6"
                 universal-controls="movementControls: beacon"
                 wasd-controls
                 beacon-controls="mode: animate">
-          <a-cursor></a-cursor>
+        <a-cursor fuse="false"></a-cursor>
       </a-entity>
 
     </a-scene>
