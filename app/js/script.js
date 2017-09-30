@@ -263,29 +263,48 @@ AFRAME.registerComponent('lookat-cam', {
 // Point of interest
 AFRAME.registerComponent('poi', {
   schema: {
+    clickAction: {type: 'string'},
+    hoverAction: {type: 'string'},
     description: {default: ''}
   },
   init: function () {
 
     var lookingAt = "You are looking at " + this.data.description;
-	this.utterLookingAtPOI = _utterLookingAtPOI = new SpeechSynthesisUtterance();
+	  this.utterLookingAtPOI = _utterLookingAtPOI = new SpeechSynthesisUtterance();
     
     this.el.addEventListener('mouseenter', function () {
-		var voices = synth.getVoices();
-		_utterLookingAtPOI.text = lookingAt;
-		_utterLookingAtPOI.voice = voices[48];
-		_utterLookingAtPOI.pitch = 1;
-		_utterLookingAtPOI.rate = 1;
-		synth.speak(_utterLookingAtPOI);
+  		var voices = synth.getVoices();
+  		_utterLookingAtPOI.text = lookingAt;
+  		_utterLookingAtPOI.voice = voices[48];
+  		_utterLookingAtPOI.pitch = 1;
+  		_utterLookingAtPOI.rate = 1;
+  		synth.speak(_utterLookingAtPOI);
     });
 
     this.el.addEventListener('mouseleave', function () {
-		synth.cancel();
+  		synth.cancel();
     });
 
 
-  },
+    // this.el.addEventListener('mouseenter', function (evt) {            
+        // var clickActionFunctionName = guiInteractable.clickAction;
+        // console.log("in button, clickActionFunctionName: "+clickActionFunctionName);
+        // find object
+        // var clickActionFunction = window[clickActionFunctionName];
+        //console.log("clickActionFunction: "+clickActionFunction);
+        // is object a function?
+        // if (typeof clickActionFunction === "function") clickActionFunction();
+    // });
 
+
+
+  },
+  setHoverAction: function (action) {
+      this.data.hoverAction = action; //change function dynamically
+  },
+  setClickAction: function (action) {
+      this.data.clickAction = action; //change function dynamically
+  },
 
 });
 
@@ -398,12 +417,13 @@ AFRAME.registerComponent('track-gaze', {
 AFRAME.registerComponent('orientation', {
   schema: {
     pitch: {type: 'number', default: 0}, // max: Math.PI/2, min: - Math.PI/2  
-    description: {default: ''}
   },
   init: function () {
     var orientationVisible = false;
     var data = this.data; 
     var _this = this;
+//    var description = el.getAttribute("desc");
+
     //single camera
     this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
     if (!this.cameraEl) {
@@ -425,6 +445,13 @@ AFRAME.registerComponent('orientation', {
         }
       }
     });
+//  adding north
+    var north = document.createElement("a-entity");
+    north.setAttribute('geometry', `primitive: ring; radiusInner:0.95; radiusOuter:1;`);
+    north.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.75;`);
+    north.setAttribute('rotation', `-90 0 0`);
+    north.setAttribute('position', `0 0.46 0`);
+    this.el.appendChild(north);
 
 //  adding north
     var north = document.createElement("a-entity");
@@ -463,7 +490,7 @@ AFRAME.registerComponent('orientation', {
     northEastEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
     northEastEast.setAttribute('rotation', `-90 0 0`);
     northEastEast.setAttribute('position', `0 0.45 0`);
-    northEastEast.setAttribute('desc', 'East Northeast');
+    northEastEast.setAttribute('desc', 'Northeast East');
     this.el.appendChild(northEastEast);
 //  adding east
     var east = document.createElement("a-entity");
@@ -486,7 +513,7 @@ AFRAME.registerComponent('orientation', {
     eastSouthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
     eastSouthEast.setAttribute('rotation', `-90 0 0`);
     eastSouthEast.setAttribute('position', `0 0.45 0`);
-    eastSouthEast.setAttribute('desc', 'East Southeast');
+    eastSouthEast.setAttribute('desc', 'Southeast East');
     this.el.appendChild(eastSouthEast);
 //  adding southEast
     var southEast = document.createElement("a-entity");
@@ -541,7 +568,7 @@ AFRAME.registerComponent('orientation', {
     southWestWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
     southWestWest.setAttribute('rotation', `-90 0 0`);
     southWestWest.setAttribute('position', `0 0.45 0`);
-    southWestWest.setAttribute('desc', 'West Southwest');
+    southWestWest.setAttribute('desc', 'Southwest West');
     this.el.appendChild(southWestWest);
 //  adding west
     var west = document.createElement("a-entity");
@@ -557,6 +584,7 @@ AFRAME.registerComponent('orientation', {
     westTitle.setAttribute('scale', `3 3 3`);
     westTitle.setAttribute('position', `-1.1 0 0 `);
     westTitle.setAttribute('rotation', `0 0 90`);
+    westTitle.setAttribute('lookat', `[camera]`);
     west.appendChild(westTitle);
 //  adding westNorthWest
     var westNorthWest = document.createElement("a-entity");
@@ -583,25 +611,34 @@ AFRAME.registerComponent('orientation', {
     northNorthWest.setAttribute('desc', 'North Northwest');
     this.el.appendChild(northNorthWest);
 
-
-/* add mouseenter for each of the rings with description
-    var facing = "You are facing " + desc;
+// add mouseenter for each of the rings with description
     this.utterfacing = _utterfacing = new SpeechSynthesisUtterance();
     
-    this.el.addEventListener('mouseenter', function () {
-    var voices = synth.getVoices();
-    _utterfacing.text = facing;
-    _utterfacing.voice = voices[48];
-    _utterfacing.pitch = 1;
-    _utterfacing.rate = 1;
-    synth.speak(_utterfacing);
-    });
+    this.el.addEventListener('mouseenter', function(evt){
+      var desc = evt.detail.intersection.object.el.getAttribute('desc');
+      var facing = "You are facing " + desc;
+      var voices = synth.getVoices();
 
+      _utterfacing.text = facing;
+      _utterfacing.voice = voices[48];
+      _utterfacing.pitch = 1;
+      _utterfacing.rate = 1;
+
+      if(desc){
+        synth.speak(_utterfacing);
+        console.log('desc: '+ facing);
+      }
+
+
+      // console.log('clicked @: ', evt.detail.intersection.point);
+      // console.log('desc @: ', evt.detail.intersection.object.el.getAttribute('desc'));
+      // console.dir(evt.detail.intersection.object.el);
+
+    });
+    
     this.el.addEventListener('mouseleave', function () {
-    synth.cancel();
+      synth.cancel();
     });
-
-*/
 
   },
 
