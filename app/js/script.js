@@ -298,7 +298,7 @@ AFRAME.registerComponent('track-gaze', {
 	},
 	init: function () {
 	    var data = this.data;	
-		var _this = this;
+		  var _this = this;
 	    var el = this.el;
 
 	    this.cameraEl = document.querySelector('a-entity[camera]');
@@ -394,6 +394,233 @@ AFRAME.registerComponent('track-gaze', {
 
 
 
+// Point of interest
+AFRAME.registerComponent('orientation', {
+  schema: {
+    pitch: {type: 'number', default: 0}, // max: Math.PI/2, min: - Math.PI/2  
+    description: {default: ''}
+  },
+  init: function () {
+    var orientationVisible = false;
+    var data = this.data; 
+    var _this = this;
+    //single camera
+    this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
+    if (!this.cameraEl) {
+      this.cameraEl = document.querySelector('a-camera');
+    }; 
+
+    this.cameraEl.addEventListener('componentchanged', function (evt) {
+      if (evt.detail.name === 'rotation') {
+        if(this.object3D.getWorldRotation().x <= data.pitch){
+          if(!orientationVisible){
+            _this.show();
+            orientationVisible = true;
+          }
+        } else {
+          if(orientationVisible){
+            _this.hide();
+            orientationVisible = false;     
+          }
+        }
+      }
+    });
+
+//  adding north
+    var north = document.createElement("a-entity");
+    north.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:75;`);
+    north.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+    north.setAttribute('rotation', `-90 0 0`);
+    north.setAttribute('position', `0 0.45 0`);
+    north.setAttribute('desc', 'North');
+    this.el.appendChild(north);
+//  adding north title
+    var northTitle = document.createElement("a-entity");
+    northTitle.setAttribute('text', `value:North; align:center`);
+    northTitle.setAttribute('scale', `3 3 3`);
+    northTitle.setAttribute('position', `0 1.1 0`);
+    northTitle.setAttribute('rotation', `0 0 0`);
+    north.appendChild(northTitle);
+//  adding northNorthEast
+    var northNorthEast = document.createElement("a-entity");
+    northNorthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:60;`);
+    northNorthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    northNorthEast.setAttribute('rotation', `-90 0 0`);
+    northNorthEast.setAttribute('position', `0 0.45 0`);
+    northNorthEast.setAttribute('desc', 'North Northeast');
+    this.el.appendChild(northNorthEast);
+//  adding northEast
+    var northEast = document.createElement("a-entity");
+    northEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:30;`);
+    northEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+    northEast.setAttribute('rotation', `-90 0 0`);
+    northEast.setAttribute('position', `0 0.45 0`);
+    northEast.setAttribute('desc', 'Northeast');
+    this.el.appendChild(northEast);
+//  adding northEastEast
+    var northEastEast = document.createElement("a-entity");
+    northEastEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:15;`);
+    northEastEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    northEastEast.setAttribute('rotation', `-90 0 0`);
+    northEastEast.setAttribute('position', `0 0.45 0`);
+    northEastEast.setAttribute('desc', 'East Northeast');
+    this.el.appendChild(northEastEast);
+//  adding east
+    var east = document.createElement("a-entity");
+    east.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-15;`);
+    east.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+    east.setAttribute('rotation', `-90 0 0`);
+    east.setAttribute('position', `0 0.45 0`);
+    east.setAttribute('desc', 'East');
+    this.el.appendChild(east);
+//  adding east title
+    var eastTitle = document.createElement("a-entity");
+    eastTitle.setAttribute('text', `value:East; align:center`);
+    eastTitle.setAttribute('scale', `3 3 3`);
+    eastTitle.setAttribute('position', `1.1 0 0`);
+    eastTitle.setAttribute('rotation', `0 0 -90`);
+    east.appendChild(eastTitle);
+//  adding eastSouthEast
+    var eastSouthEast = document.createElement("a-entity");
+    eastSouthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-30;`);
+    eastSouthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    eastSouthEast.setAttribute('rotation', `-90 0 0`);
+    eastSouthEast.setAttribute('position', `0 0.45 0`);
+    eastSouthEast.setAttribute('desc', 'East Southeast');
+    this.el.appendChild(eastSouthEast);
+//  adding southEast
+    var southEast = document.createElement("a-entity");
+    southEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-60;`);
+    southEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+    southEast.setAttribute('rotation', `-90 0 0`);
+    southEast.setAttribute('position', `0 0.45 0`);
+    southEast.setAttribute('desc', 'Southeast');
+    this.el.appendChild(southEast);
+//  adding southSouthEast
+    var southSouthEast = document.createElement("a-entity");
+    southSouthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-75;`);
+    southSouthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    southSouthEast.setAttribute('rotation', `-90 0 0`);
+    southSouthEast.setAttribute('position', `0 0.45 0`);
+    southSouthEast.setAttribute('desc', 'South Southeast');
+    this.el.appendChild(southSouthEast);
+//  adding south
+    var south = document.createElement("a-entity");
+    south.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-105;`);
+    south.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+    south.setAttribute('rotation', `-90 0 0`);
+    south.setAttribute('position', `0 0.45 0`);
+    south.setAttribute('desc', 'South');
+    this.el.appendChild(south);
+//  adding south title
+    var southTitle = document.createElement("a-entity");
+    southTitle.setAttribute('text', `value:South; align:center`);
+    southTitle.setAttribute('scale', `3 3 3`);
+    southTitle.setAttribute('position', `0 -1.1 0 `);
+    southTitle.setAttribute('rotation', `0 0 -180`);
+    south.appendChild(southTitle);
+//  adding southSouthWest
+    var southSouthWest = document.createElement("a-entity");
+    southSouthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-120;`);
+    southSouthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    southSouthWest.setAttribute('rotation', `-90 0 0`);
+    southSouthWest.setAttribute('position', `0 0.45 0`);
+    southSouthWest.setAttribute('desc', 'South Southwest');
+    this.el.appendChild(southSouthWest);
+//  adding southWest
+    var southWest = document.createElement("a-entity");
+    southWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-150;`);
+    southWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+    southWest.setAttribute('rotation', `-90 0 0`);
+    southWest.setAttribute('position', `0 0.45 0`);
+    southWest.setAttribute('desc', 'Southwest');
+    this.el.appendChild(southWest);
+//  adding southWestWest
+    var southWestWest = document.createElement("a-entity");
+    southWestWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-165;`);
+    southWestWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    southWestWest.setAttribute('rotation', `-90 0 0`);
+    southWestWest.setAttribute('position', `0 0.45 0`);
+    southWestWest.setAttribute('desc', 'West Southwest');
+    this.el.appendChild(southWestWest);
+//  adding west
+    var west = document.createElement("a-entity");
+    west.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-195;`);
+    west.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+    west.setAttribute('rotation', `-90 0 0`);
+    west.setAttribute('position', `0 0.45 0`);
+    west.setAttribute('desc', 'West');
+    this.el.appendChild(west);
+//  adding west title
+    var westTitle = document.createElement("a-entity");
+    westTitle.setAttribute('text', `value:West; align:center`);
+    westTitle.setAttribute('scale', `3 3 3`);
+    westTitle.setAttribute('position', `-1.1 0 0 `);
+    westTitle.setAttribute('rotation', `0 0 90`);
+    west.appendChild(westTitle);
+//  adding westNorthWest
+    var westNorthWest = document.createElement("a-entity");
+    westNorthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-210;`);
+    westNorthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    westNorthWest.setAttribute('rotation', `-90 0 0`);
+    westNorthWest.setAttribute('position', `0 0.45 0`);
+    westNorthWest.setAttribute('desc', 'West Northwest');
+    this.el.appendChild(westNorthWest);
+//  adding northWest
+    var northWest = document.createElement("a-entity");
+    northWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-240;`);
+    northWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+    northWest.setAttribute('rotation', `-90 0 0`);
+    northWest.setAttribute('position', `0 0.45 0`);
+    northWest.setAttribute('desc', 'Northwest');
+    this.el.appendChild(northWest);
+//  adding northNorthWest
+    var northNorthWest = document.createElement("a-entity");
+    northNorthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-255;`);
+    northNorthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+    northNorthWest.setAttribute('rotation', `-90 0 0`);
+    northNorthWest.setAttribute('position', `0 0.45 0`);
+    northNorthWest.setAttribute('desc', 'North Northwest');
+    this.el.appendChild(northNorthWest);
+
+
+/* add mouseenter for each of the rings with description
+    var facing = "You are facing " + desc;
+    this.utterfacing = _utterfacing = new SpeechSynthesisUtterance();
+    
+    this.el.addEventListener('mouseenter', function () {
+    var voices = synth.getVoices();
+    _utterfacing.text = facing;
+    _utterfacing.voice = voices[48];
+    _utterfacing.pitch = 1;
+    _utterfacing.rate = 1;
+    synth.speak(_utterfacing);
+    });
+
+    this.el.addEventListener('mouseleave', function () {
+    synth.cancel();
+    });
+
+*/
+
+  },
+
+  show: function () {
+    this.el.setAttribute('scale', '1 1 1');
+  },
+
+  hide: function () {
+    this.el.setAttribute('scale', '0.03 0.03 0.03');
+  },
+
+  tick: function () {   
+    var newPos = new THREE.Vector3();
+    newPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
+    this.el.setAttribute('position', newPos.x + ' 0 ' + newPos.z);
+  }
+
+});
+
 
 
 // var defaultCameraUserHeight; 
@@ -406,5 +633,97 @@ AFRAME.registerComponent('track-gaze', {
 //  addRenderStartListener(); //document.body.addEventListener('DOMContentLoaded', addRenderStartListener);
 
 
+
+
+/*
+AFRAME.registerComponent('gravr-avatar', {
+  schema: {
+    color: {default: '#928DAB'},
+    obj: {default: 'assets/basemesh.obj'},
+    offsetPos: { type: 'vec3', default: {x:0, y:0, z:0.15} },
+  },
+  init: function () {
+    var data = this.data;
+    var el = this.el;
+    var _this = this;
+
+    this.userHeight = userHeight = 0; 
+    this.sceneEl = sceneEl = document.querySelector('a-scene');
+
+    //single camera
+    this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
+    if (!this.cameraEl) {
+      this.cameraEl = document.querySelector('a-camera');
+    } 
+    
+    var worldPos = new THREE.Vector3();
+    worldPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
+
+    this.avatarContainer = avatarContainer = document.createElement("a-entity");
+    avatarContainer.setAttribute('geometry', `primitive: box; width: 1; height: ${userHeight}; depth: 1;`);
+    avatarContainer.setAttribute('material', 'shader: flat; opacity: 0; side:front; color: #fff');
+    avatarContainer.setAttribute('position', `0 ${userHeight/2} 0`);
+    avatarContainer.setAttribute('rotation', '0 0 0');
+    avatarContainer.setAttribute('visible', 'false');
+    el.appendChild(avatarContainer);
+
+    this.avatarModel = avatarModel = document.createElement("a-obj-model");
+    avatarModel.setAttribute('src', data.obj);
+    avatarModel.setAttribute('position', `${data.offsetPos.x} -${userHeight/2} ${data.offsetPos.z}`);
+    avatarModel.setAttribute('rotation', '0 180 0');
+    avatarModel.setAttribute('color', data.color);
+    avatarModel.setAttribute('scale', `1  ${userHeightConvert(userHeight)} 1`);
+    avatarContainer.setAttribute('visible', 'false');
+    avatarContainer.appendChild(avatarModel);
+
+    this.cameraEl.addEventListener('loaded', function (evt) {    
+      _this.userHeight = userHeight = _this.cameraEl.components.camera.data.userHeight;
+      console.log('userHeight from cameraEl: '+ userHeight);
+      _this.setupAvatarHeight(userHeight);
+    });
+
+    this.onEnterVR = this.onEnterVR.bind(this);
+    this.onExitVR = this.onExitVR.bind(this);
+    this.sceneEl.addEventListener('enter-vr', this.onEnterVR);
+    this.sceneEl.addEventListener('exit-vr', this.onExitVR);
+
+  },
+  setupAvatarHeight: function (userHeight) {
+    var data = this.data;
+
+    avatarContainer.setAttribute('position', `0 ${userHeight/2} 0`);
+    avatarContainer.setAttribute('geometry', `height: ${userHeight};`);
+    avatarContainer.setAttribute('visible', 'true');
+
+    avatarModel.setAttribute('position', `${data.offsetPos.x} -${userHeight/2} ${data.offsetPos.z}`);
+    avatarModel.setAttribute('scale', `1  ${userHeightConvert(userHeight)} 1`);
+    avatarContainer.setAttribute('visible', 'true');
+
+  },
+  onEnterVR: function () {
+
+    var cameraEl = this.cameraEl;
+    var userHeight = this.userHeight;
+
+//------//add loop to check if there is tracked HMD height
+
+    setTimeout(function(){
+      cameraEl.setAttribute('position', 'y', userHeight);
+    }, 100 );
+    
+  },
+  onExitVR: function () {
+    console.log("exiting VR with gravr-avatar");
+  },
+  tick: function () {   
+    var avatarPos = new THREE.Vector3();
+    avatarPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
+    var avatarRot = this.cameraEl.object3D.getWorldRotation();
+    this.el.setAttribute('position', avatarPos.x + ' 0 ' + avatarPos.z);
+    this.el.setAttribute("rotation", "0 " + radiansToDegrees(avatarRot.y) + " 0");
+  }
+});
+
+*/
 
 
