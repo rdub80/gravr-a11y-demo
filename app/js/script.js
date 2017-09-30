@@ -18,216 +18,216 @@ var synth = window.speechSynthesis;
 var EPS = 0.1;
 
 AFRAME.registerComponent('beacon-controls', {
-  schema: {
-    enabled: {default: true},
-    mode: {default: 'teleport', oneOf: ['teleport', 'animate']},
-    animateSpeed: {default: 3.0}
-  },
+    schema: {
+        enabled: { default: true },
+        mode: { default: 'teleport', oneOf: ['teleport', 'animate'] },
+        animateSpeed: { default: 3.0 }
+    },
 
-  init: function () {
-    this.active = true;
-    this.beacon = null;
+    init: function() {
+        this.active = true;
+        this.beacon = null;
 
-    this.offset = new THREE.Vector3();
-    this.position = new THREE.Vector3();
-    this.targetPosition = new THREE.Vector3();
-  },
+        this.offset = new THREE.Vector3();
+        this.position = new THREE.Vector3();
+        this.targetPosition = new THREE.Vector3();
+    },
 
-  play: function () { this.active = true; },
-  pause: function () { this.active = false; },
+    play: function() { this.active = true; },
+    pause: function() { this.active = false; },
 
 
-  setBeacon: function (beacon) {
-    var el = this.el;
+    setBeacon: function(beacon) {
+        var el = this.el;
 
-    if (!this.active) return;
-    if (this.beacon === beacon) return;
+        if (!this.active) return;
+        if (this.beacon === beacon) return;
 
-    if (this.beacon) {
-      el.emit('navigation-end', {beacon: beacon});
+        if (this.beacon) {
+            el.emit('navigation-end', { beacon: beacon });
+        }
+
+        this.beacon = beacon;
+        el.emit('navigation-start', { beacon: beacon });
+
+        if (this.data.mode === 'teleport') {
+            this.sync();
+            this.el.setAttribute('position', this.targetPosition);
+            this.beacon = null;
+            el.emit('navigation-end', { beacon: beacon });
+        }
+    },
+
+    isVelocityActive: function() {
+        return !!(this.active && this.beacon);
+    },
+
+    getVelocity: function() {
+        if (!this.active) return;
+
+        var data = this.data,
+            offset = this.offset,
+            position = this.position,
+            targetPosition = this.targetPosition,
+            beacon = this.beacon;
+
+        this.sync();
+        if (position.distanceTo(targetPosition) < EPS) {
+            this.beacon = null;
+            this.el.emit('navigation-end', { beacon: beacon });
+            return offset.set(0, 0, 0);
+        }
+        offset.setLength(data.animateSpeed);
+        return offset;
+    },
+
+    sync: function() {
+        var offset = this.offset,
+            position = this.position,
+            targetPosition = this.targetPosition;
+
+        position.copy(this.el.getAttribute('position'));
+        targetPosition.copy(this.beacon.object3D.getWorldPosition());
+        targetPosition.add(this.beacon.components.beacon.getOffset());
+        offset.copy(targetPosition).sub(position);
+
+        //read description of beacon once - issue does not recognize different desc
+        this.readOnce(this.beacon.components.beacon.getDescription());
+
+    },
+    readOnce: function(text) {
+        if (this.readOnce.done) return;
+
+        var tts = "You're walking towards the Beacon " + text;
+        var utterThis = new SpeechSynthesisUtterance(tts);
+        var voices = synth.getVoices();
+        utterThis.voice = voices[48];
+        utterThis.pitch = 1;
+        utterThis.rate = 1;
+
+        synth.speak(utterThis);
+
+        utterThis.onend = function(event) {
+            console.log('Utterance has finished being spoken after ' + event.elapsedTime + ' milliseconds.');
+            this.readOnce.done = false;
+        }
+        this.readOnce.done = true;
     }
-
-    this.beacon = beacon;
-    el.emit('navigation-start', {beacon: beacon});
-
-    if (this.data.mode === 'teleport') {
-      this.sync();
-      this.el.setAttribute('position', this.targetPosition);
-      this.beacon = null;
-      el.emit('navigation-end', {beacon: beacon});
-    }
-  },
-
-  isVelocityActive: function () {
-    return !!(this.active && this.beacon);
-  },
-
-  getVelocity: function () {
-    if (!this.active) return;
-
-    var data = this.data,
-        offset = this.offset,
-        position = this.position,
-        targetPosition = this.targetPosition,
-        beacon = this.beacon;
-
-    this.sync();
-    if (position.distanceTo(targetPosition) < EPS) {
-      this.beacon = null;
-      this.el.emit('navigation-end', {beacon: beacon});
-      return offset.set(0, 0, 0);
-    }
-    offset.setLength(data.animateSpeed);
-    return offset;
-  },
-
-  sync: function () {
-    var offset = this.offset,
-        position = this.position,
-        targetPosition = this.targetPosition;
-
-    position.copy(this.el.getAttribute('position'));
-    targetPosition.copy(this.beacon.object3D.getWorldPosition());
-    targetPosition.add(this.beacon.components.beacon.getOffset());
-    offset.copy(targetPosition).sub(position);
-	
-	//read description of beacon once - issue does not recognize different desc
-	this.readOnce(this.beacon.components.beacon.getDescription());
-
-  },
-  readOnce: function(text) {
-    if(this.readOnce.done) return;
-
-    var tts = "You're walking towards the Beacon " + text;
-  	var utterThis = new SpeechSynthesisUtterance(tts);
-  	var voices = synth.getVoices();
-  	utterThis.voice = voices[48];
-  	utterThis.pitch = 1;
-  	utterThis.rate = 1;
-
-  	synth.speak(utterThis);
-
-  	utterThis.onend = function(event) {
-    	console.log('Utterance has finished being spoken after ' + event.elapsedTime + ' milliseconds.');
-      this.readOnce.done = false;
-  	}
-    this.readOnce.done = true;
-  }
 
 });
 
 
 AFRAME.registerComponent('beacon', {
-  schema: {
-    offset: {default: {x: 0, y: 1.6, z: 0}, type: 'vec3'}, // default user height 1.6
-    hoverZone: {default: {width: 4, height: 8}},
-    description: {default: ''}
-  },
+    schema: {
+        offset: { default: { x: 0, y: 1.6, z: 0 }, type: 'vec3' }, // default user height 1.6
+        hoverZone: { default: { width: 4, height: 8 } },
+        description: { default: '' }
+    },
 
-  init: function () {
-    this.active = false;
-    this.targetEl = null;
-    this.fire = this.fire.bind(this);
-    this.offset = new THREE.Vector3();
-    this.vector = new THREE.Vector3();
+    init: function() {
+        this.active = false;
+        this.targetEl = null;
+        this.fire = this.fire.bind(this);
+        this.offset = new THREE.Vector3();
+        this.vector = new THREE.Vector3();
 
-//  adding ring platform
-    var platform = document.createElement("a-entity");
-    platform.setAttribute('geometry', `primitive: ring; radiusInner:0.65; radiusOuter:0.85;`);
-    platform.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.5;`);
-    platform.setAttribute('rotation', `-90 0 0`);
-    platform.setAttribute('position', `0 0.001 0`);
-    this.el.appendChild(platform);
+        //  adding ring platform
+        var platform = document.createElement("a-entity");
+        platform.setAttribute('geometry', `primitive: ring; radiusInner:0.65; radiusOuter:0.85;`);
+        platform.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.5;`);
+        platform.setAttribute('rotation', `-90 0 0`);
+        platform.setAttribute('position', `0 0.001 0`);
+        this.el.appendChild(platform);
 
-//  adding dynamically a large hoverzone for beacons
-    var hoverArea = document.createElement("a-entity");
-    hoverArea.setAttribute('geometry', `primitive: plane; width: ${this.data.hoverZone.width}; height: ${this.data.hoverZone.height};`);
-    hoverArea.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.1;`);
-    hoverArea.setAttribute('position', `0 ${this.data.hoverZone.height/2} 0`);
-    this.el.appendChild(hoverArea);
+        //  adding dynamically a large hoverzone for beacons
+        var hoverArea = document.createElement("a-entity");
+        hoverArea.setAttribute('geometry', `primitive: plane; width: ${this.data.hoverZone.width}; height: ${this.data.hoverZone.height};`);
+        hoverArea.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.1;`);
+        hoverArea.setAttribute('position', `0 ${this.data.hoverZone.height/2} 0`);
+        this.el.appendChild(hoverArea);
 
-//	adding description
-    var desc = document.createElement("a-entity");
-    desc.setAttribute('text', `value: ${this.data.description}; align:center`);
-    desc.setAttribute('scale', `10 10 10`);
-    desc.setAttribute('position', `0 1 0`);
-    this.el.appendChild(desc);
+        //  adding description
+        var desc = document.createElement("a-entity");
+        desc.setAttribute('text', `value: ${this.data.description}; align:center`);
+        desc.setAttribute('scale', `10 10 10`);
+        desc.setAttribute('position', `0 1 0`);
+        this.el.appendChild(desc);
 
 
-    var lookingAt = "You are looking at the Beacon " + this.data.description;
-	  this.utterLookingAt = _utterLookingAt = new SpeechSynthesisUtterance();
-    
-    this.el.addEventListener('mouseenter', function () {
-		var voices = synth.getVoices();
-		_utterLookingAt.text = lookingAt;
-		_utterLookingAt.voice = voices[48];
-		_utterLookingAt.pitch = 1;
-		_utterLookingAt.rate = 1;
-		synth.speak(_utterLookingAt);
-    });
+        var lookingAt = "You are looking at the Beacon " + this.data.description;
+        this.utterLookingAt = _utterLookingAt = new SpeechSynthesisUtterance();
 
-    this.el.addEventListener('mouseleave', function () {
-		synth.cancel();
-    });
+        this.el.addEventListener('mouseenter', function() {
+            var voices = synth.getVoices();
+            _utterLookingAt.text = lookingAt;
+            _utterLookingAt.voice = voices[48];
+            _utterLookingAt.pitch = 1;
+            _utterLookingAt.rate = 1;
+            synth.speak(_utterLookingAt);
+        });
 
-  },
+        this.el.addEventListener('mouseleave', function() {
+            synth.cancel();
+        });
 
-  tick: function (t) { //  orient towards camera
+    },
 
-    var self = this;
-    var target = self.el.sceneEl.camera;
-    var object3D = self.el.object3D;
+    tick: function(t) { //  orient towards camera
 
-    // make sure camera is set
-    if (target) { 
-         target.updateMatrixWorld();
-         this.vector.setFromMatrixPosition(target.matrixWorld);
-         if (object3D.parent) {
-           object3D.parent.updateMatrixWorld();
-           object3D.parent.worldToLocal(this.vector);
+        var self = this;
+        var target = self.el.sceneEl.camera;
+        var object3D = self.el.object3D;
 
-         }
-     //    return object3D.lookAt(this.vector); ignore camera pitch
-         return object3D.lookAt(new THREE.Vector3(this.vector.x, object3D.position.y, this.vector.z));
+        // make sure camera is set
+        if (target) {
+            target.updateMatrixWorld();
+            this.vector.setFromMatrixPosition(target.matrixWorld);
+            if (object3D.parent) {
+                object3D.parent.updateMatrixWorld();
+                object3D.parent.worldToLocal(this.vector);
+
+            }
+            //    return object3D.lookAt(this.vector); ignore camera pitch
+            return object3D.lookAt(new THREE.Vector3(this.vector.x, object3D.position.y, this.vector.z));
+        }
+    },
+
+    update: function() { // read the height from the camera component and use that to offset y
+        this.offset.copy(this.data.offset);
+        /*    not working
+            var sceneEl = this.el.sceneEl;
+          sceneEl.addEventListener('renderstart', function (evt) {
+                var camera = evt.detail.target.camera.el.components.camera;
+                defaultCameraUserHeight = camera.data.userHeight;
+              this.offset.y = defaultCameraUserHeight;
+              //_offset.set({x: 0, y: defaultCameraUserHeight, z: 0});
+              console.log("adjust to camera height");
+            });
+        */
+    },
+
+    play: function() {
+        this.el.addEventListener('click', this.fire);
+    },
+    pause: function() {
+        this.el.removeEventListener('click', this.fire);
+    },
+    remove: function() { this.pause(); },
+
+    fire: function() {
+        var targetEl = this.el.sceneEl.querySelector('[beacon-controls]');
+        if (!targetEl) {
+            throw new Error('No `beacon-controls` component found.');
+        }
+        targetEl.components['beacon-controls'].setBeacon(this.el);
+        console.dir(this.el);
+    },
+    getOffset: function() {
+        return this.offset.copy(this.data.offset);
+    },
+    getDescription: function() {
+        return this.data.description;
     }
-  },
-
-  update: function () { // read the height from the camera component and use that to offset y
-    this.offset.copy(this.data.offset);
-/*    not working
-    var sceneEl = this.el.sceneEl;
-	sceneEl.addEventListener('renderstart', function (evt) {
-       	var camera = evt.detail.target.camera.el.components.camera;
-       	defaultCameraUserHeight = camera.data.userHeight;
-    	this.offset.y = defaultCameraUserHeight;
-    	//_offset.set({x: 0, y: defaultCameraUserHeight, z: 0});
-    	console.log("adjust to camera height");
-    });
-*/
-  },
-
-  play: function () { 
-  	this.el.addEventListener('click', this.fire); 
-  },
-  pause: function () { 
-  	this.el.removeEventListener('click', this.fire);
-  },
-  remove: function () { this.pause(); },
-
-  fire: function () {
-    var targetEl = this.el.sceneEl.querySelector('[beacon-controls]');
-    if (!targetEl) {
-      throw new Error('No `beacon-controls` component found.');
-    }
-    targetEl.components['beacon-controls'].setBeacon(this.el);
-    console.dir(this.el);
-  },
-  getOffset: function () {
-    return this.offset.copy(this.data.offset);
-  },
-  getDescription: function () {
-    return this.data.description;
-  }
 
 
 });
@@ -235,26 +235,26 @@ AFRAME.registerComponent('beacon', {
 
 // orient entity to face camera
 AFRAME.registerComponent('lookat-cam', {
-  init: function () {
-    this.vector = new THREE.Vector3();
-  },
+    init: function() {
+        this.vector = new THREE.Vector3();
+    },
 
-  tick: function (t) {
-    var self = this;
-    var target = self.el.sceneEl.camera;
-    var object3D = self.el.object3D;
+    tick: function(t) {
+        var self = this;
+        var target = self.el.sceneEl.camera;
+        var object3D = self.el.object3D;
 
-    // make sure camera is set
-    if (target) { 
-      target.updateMatrixWorld();
-      this.vector.setFromMatrixPosition(target.matrixWorld);
-      if (object3D.parent) {
-        object3D.parent.updateMatrixWorld();
-        object3D.parent.worldToLocal(this.vector);
-      }
-      return object3D.lookAt(this.vector);
+        // make sure camera is set
+        if (target) {
+            target.updateMatrixWorld();
+            this.vector.setFromMatrixPosition(target.matrixWorld);
+            if (object3D.parent) {
+                object3D.parent.updateMatrixWorld();
+                object3D.parent.worldToLocal(this.vector);
+            }
+            return object3D.lookAt(this.vector);
+        }
     }
-  }
 });
 
 
@@ -262,31 +262,31 @@ AFRAME.registerComponent('lookat-cam', {
 
 // Point of interest
 AFRAME.registerComponent('poi', {
-  schema: {
-    clickAction: {type: 'string'},
-    hoverAction: {type: 'string'},
-    description: {default: ''}
-  },
-  init: function () {
+    schema: {
+        clickAction: { type: 'string' },
+        hoverAction: { type: 'string' },
+        description: { default: '' }
+    },
+    init: function() {
 
-    var lookingAt = "You are looking at " + this.data.description;
-	  this.utterLookingAtPOI = _utterLookingAtPOI = new SpeechSynthesisUtterance();
-    
-    this.el.addEventListener('mouseenter', function () {
-  		var voices = synth.getVoices();
-  		_utterLookingAtPOI.text = lookingAt;
-  		_utterLookingAtPOI.voice = voices[48];
-  		_utterLookingAtPOI.pitch = 1;
-  		_utterLookingAtPOI.rate = 1;
-  		synth.speak(_utterLookingAtPOI);
-    });
+        var lookingAt = "You are looking at " + this.data.description;
+        this.utterLookingAtPOI = _utterLookingAtPOI = new SpeechSynthesisUtterance();
 
-    this.el.addEventListener('mouseleave', function () {
-  		synth.cancel();
-    });
+        this.el.addEventListener('mouseenter', function() {
+            var voices = synth.getVoices();
+            _utterLookingAtPOI.text = lookingAt;
+            _utterLookingAtPOI.voice = voices[48];
+            _utterLookingAtPOI.pitch = 1;
+            _utterLookingAtPOI.rate = 1;
+            synth.speak(_utterLookingAtPOI);
+        });
+
+        this.el.addEventListener('mouseleave', function() {
+            synth.cancel();
+        });
 
 
-    // this.el.addEventListener('mouseenter', function (evt) {            
+        // this.el.addEventListener('mouseenter', function (evt) {            
         // var clickActionFunctionName = guiInteractable.clickAction;
         // console.log("in button, clickActionFunctionName: "+clickActionFunctionName);
         // find object
@@ -294,17 +294,17 @@ AFRAME.registerComponent('poi', {
         //console.log("clickActionFunction: "+clickActionFunction);
         // is object a function?
         // if (typeof clickActionFunction === "function") clickActionFunction();
-    // });
+        // });
 
 
 
-  },
-  setHoverAction: function (action) {
-      this.data.hoverAction = action; //change function dynamically
-  },
-  setClickAction: function (action) {
-      this.data.clickAction = action; //change function dynamically
-  },
+    },
+    setHoverAction: function(action) {
+        this.data.hoverAction = action; //change function dynamically
+    },
+    setClickAction: function(action) {
+        this.data.clickAction = action; //change function dynamically
+    },
 
 });
 
@@ -312,102 +312,102 @@ AFRAME.registerComponent('poi', {
 
 // calculate motion speed
 AFRAME.registerComponent('track-gaze', {
-	schema: {
-	    dist: {type: 'number', default: -1.5},
-	},
-	init: function () {
-	    var data = this.data;	
-		  var _this = this;
-	    var el = this.el;
+    schema: {
+        dist: { type: 'number', default: -1.5 },
+    },
+    init: function() {
+        var data = this.data;
+        var _this = this;
+        var el = this.el;
 
-	    this.cameraEl = document.querySelector('a-entity[camera]');
-	    this.panel = document.querySelector('a-entity[id="panel"]');
+        this.cameraEl = document.querySelector('a-entity[camera]');
+        this.panel = document.querySelector('a-entity[id="panel"]');
 
-	    this.yaxis = new THREE.Vector3(0, 1, 0);
-	    this.zaxis = new THREE.Vector3(0, 0, 1);
-	    this.pivot = new THREE.Object3D();
-//	    this.panel.object3D.position.set(0, this.cameraEl.object3D.getWorldPosition().y, data.dist);
-	    this.panel.object3D.position.set(0, 0, data.dist);
-	    el.sceneEl.object3D.add(this.pivot);
-	    this.pivot.add(this.panel.object3D);
+        this.yaxis = new THREE.Vector3(0, 1, 0);
+        this.zaxis = new THREE.Vector3(0, 0, 1);
+        this.pivot = new THREE.Object3D();
+        //      this.panel.object3D.position.set(0, this.cameraEl.object3D.getWorldPosition().y, data.dist);
+        this.panel.object3D.position.set(0, 0, data.dist);
+        el.sceneEl.object3D.add(this.pivot);
+        this.pivot.add(this.panel.object3D);
 
-//		this.panel.setAttribute("position", "0 " + this.cameraEl.object3D.getWorldPosition().y + " " + data.dist);
+        //    this.panel.setAttribute("position", "0 " + this.cameraEl.object3D.getWorldPosition().y + " " + data.dist);
 
-	    this.cameraEl.addEventListener('componentchanged', function (evt) {
-	      	if (evt.detail.name === 'rotation') {
-	        	_this.posTrack(evt.detail.newData)
-	      	}
-	    });
-	    setTimeout(function(){ _this.updatePos(); }, 10000);
+        this.cameraEl.addEventListener('componentchanged', function(evt) {
+            if (evt.detail.name === 'rotation') {
+                _this.posTrack(evt.detail.newData)
+            }
+        });
+        setTimeout(function() { _this.updatePos(); }, 10000);
 
-	},
-	posTrack: function (newData) {
-		
-		var horizontal = roundNumber(newData.x,2);
-		var vertical = roundNumber(newData.y,2);
-		document.querySelector('a-text[id="horizontal"]').setAttribute("value", horizontal);
-		document.querySelector('a-text[id="vertical"]').setAttribute("value", vertical);
-		/**/
+    },
+    posTrack: function(newData) {
 
-		var rotateY = this.cameraEl.object3D.getWorldRotation().y;
-		var rotateX = this.cameraEl.object3D.getWorldRotation().x;
-		console.log("rotateY: " + radiansToDegrees(rotateY) + " - rotateX: " + radiansToDegrees(rotateX));
+        var horizontal = roundNumber(newData.x, 2);
+        var vertical = roundNumber(newData.y, 2);
+        document.querySelector('a-text[id="horizontal"]').setAttribute("value", horizontal);
+        document.querySelector('a-text[id="vertical"]').setAttribute("value", vertical);
+        /**/
 
-		// var panelWdithLeft = 0;
-		// var panelWdithRight = 0;
+        var rotateY = this.cameraEl.object3D.getWorldRotation().y;
+        var rotateX = this.cameraEl.object3D.getWorldRotation().x;
+        console.log("rotateY: " + radiansToDegrees(rotateY) + " - rotateX: " + radiansToDegrees(rotateX));
 
-		var panelWdith = 0;
-		var panelHeight = 0;
-		var panelDistance = this.data.dist*2;
+        // var panelWdithLeft = 0;
+        // var panelWdithRight = 0;
 
-		// x; tan( Rotation Deg ) = length (x) /distance (z)
-		// Tangent = opposite/adjacent
+        var panelWdith = 0;
+        var panelHeight = 0;
+        var panelDistance = this.data.dist * 2;
 
-		// if(rotateY>0){
-		// 	panelWdithLeft = Math.tan(rotateY) * panelDistance;
-		// }else{
-		// 	rotateY = -rotateY;
-		// 	panelWdithLeft = 0;
-		// 	panelWdithRight = Math.tan(rotateY) * panelDistance;
-		// }
+        // x; tan( Rotation Deg ) = length (x) /distance (z)
+        // Tangent = opposite/adjacent
 
-		var posRotY = -rotateY > 0 ? -rotateY  : rotateY;
-		panelWdith = Math.tan(posRotY) * panelDistance;
+        // if(rotateY>0){
+        //  panelWdithLeft = Math.tan(rotateY) * panelDistance;
+        // }else{
+        //  rotateY = -rotateY;
+        //  panelWdithLeft = 0;
+        //  panelWdithRight = Math.tan(rotateY) * panelDistance;
+        // }
 
-		var posRotX = -rotateX > 0 ? -rotateX  : rotateX;
-		panelHeight = Math.tan(posRotX) * panelDistance;
+        var posRotY = -rotateY > 0 ? -rotateY : rotateY;
+        panelWdith = Math.tan(posRotY) * panelDistance;
 
-		console.log("panelWdith: " + panelWdith);
-		console.log("panelHeight: " + panelHeight);
+        var posRotX = -rotateX > 0 ? -rotateX : rotateX;
+        panelHeight = Math.tan(posRotX) * panelDistance;
 
-		this.panel.setAttribute("geometry","width", panelWdith);
-		this.panel.setAttribute("geometry","height", panelHeight);
+        console.log("panelWdith: " + panelWdith);
+        console.log("panelHeight: " + panelHeight);
 
-	},	
-	setPos: function () {
-		var direction = this.zaxis.clone();
-	    direction.applyQuaternion(this.cameraEl.object3D.quaternion);
-	    var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
-	    direction.sub(ycomponent);
-	    direction.normalize();
+        this.panel.setAttribute("geometry", "width", panelWdith);
+        this.panel.setAttribute("geometry", "height", panelHeight);
 
-	    this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
-	    this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
-	    this.panel.setAttribute("rotation",this.cameraEl.object3D.getWorldRotation());
-		console.log("fired updatePos");
-	},	
-	updatePos: function () {
-		var direction = this.zaxis.clone();
-	    direction.applyQuaternion(this.cameraEl.object3D.quaternion);
-	    var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
-	    direction.sub(ycomponent);
-	    direction.normalize();
+    },
+    setPos: function() {
+        var direction = this.zaxis.clone();
+        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
+        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
+        direction.sub(ycomponent);
+        direction.normalize();
 
-	    this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
-	    this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
-	    this.panel.setAttribute("rotation",this.cameraEl.object3D.getWorldRotation());
-		console.log("fired updatePos");
-	},	
+        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
+        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
+        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
+        console.log("fired updatePos");
+    },
+    updatePos: function() {
+        var direction = this.zaxis.clone();
+        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
+        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
+        direction.sub(ycomponent);
+        direction.normalize();
+
+        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
+        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
+        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
+        console.log("fired updatePos");
+    },
 
 });
 
@@ -415,246 +415,246 @@ AFRAME.registerComponent('track-gaze', {
 
 // Point of interest
 AFRAME.registerComponent('orientation', {
-  schema: {
-    pitch: {type: 'number', default: 0}, // max: Math.PI/2, min: - Math.PI/2  
-  },
-  init: function () {
-    var orientationVisible = false;
-    var data = this.data; 
-    var _this = this;
-//    var description = el.getAttribute("desc");
+    schema: {
+        pitch: { type: 'number', default: 0 }, // max: Math.PI/2, min: - Math.PI/2  
+    },
+    init: function() {
+        var orientationVisible = false;
+        var data = this.data;
+        var _this = this;
+        //    var description = el.getAttribute("desc");
 
-    //single camera
-    this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
-    if (!this.cameraEl) {
-      this.cameraEl = document.querySelector('a-camera');
-    }; 
+        //single camera
+        this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
+        if (!this.cameraEl) {
+            this.cameraEl = document.querySelector('a-camera');
+        };
 
-    this.cameraEl.addEventListener('componentchanged', function (evt) {
-      if (evt.detail.name === 'rotation') {
-        if(this.object3D.getWorldRotation().x <= data.pitch){
-          if(!orientationVisible){
-            _this.show();
-            orientationVisible = true;
-          }
-        } else {
-          if(orientationVisible){
-            _this.hide();
-            orientationVisible = false;     
-          }
-        }
-      }
-    });
-//  adding north
-    var north = document.createElement("a-entity");
-    north.setAttribute('geometry', `primitive: ring; radiusInner:0.95; radiusOuter:1;`);
-    north.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.75;`);
-    north.setAttribute('rotation', `-90 0 0`);
-    north.setAttribute('position', `0 0.46 0`);
-    this.el.appendChild(north);
+        this.cameraEl.addEventListener('componentchanged', function(evt) {
+            if (evt.detail.name === 'rotation') {
+                if (this.object3D.getWorldRotation().x <= data.pitch) {
+                    if (!orientationVisible) {
+                        _this.show();
+                        orientationVisible = true;
+                    }
+                } else {
+                    if (orientationVisible) {
+                        _this.hide();
+                        orientationVisible = false;
+                    }
+                }
+            }
+        });
+        //  adding north
+        var north = document.createElement("a-entity");
+        north.setAttribute('geometry', `primitive: ring; radiusInner:0.95; radiusOuter:1;`);
+        north.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.75;`);
+        north.setAttribute('rotation', `-90 0 0`);
+        north.setAttribute('position', `0 0.46 0`);
+        this.el.appendChild(north);
 
-//  adding north
-    var north = document.createElement("a-entity");
-    north.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:75;`);
-    north.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
-    north.setAttribute('rotation', `-90 0 0`);
-    north.setAttribute('position', `0 0.45 0`);
-    north.setAttribute('desc', 'North');
-    this.el.appendChild(north);
-//  adding north title
-    var northTitle = document.createElement("a-entity");
-    northTitle.setAttribute('text', `value:North; align:center`);
-    northTitle.setAttribute('scale', `3 3 3`);
-    northTitle.setAttribute('position', `0 1.1 0`);
-    northTitle.setAttribute('rotation', `0 0 0`);
-    north.appendChild(northTitle);
-//  adding northNorthEast
-    var northNorthEast = document.createElement("a-entity");
-    northNorthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:60;`);
-    northNorthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    northNorthEast.setAttribute('rotation', `-90 0 0`);
-    northNorthEast.setAttribute('position', `0 0.45 0`);
-    northNorthEast.setAttribute('desc', 'North Northeast');
-    this.el.appendChild(northNorthEast);
-//  adding northEast
-    var northEast = document.createElement("a-entity");
-    northEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:30;`);
-    northEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
-    northEast.setAttribute('rotation', `-90 0 0`);
-    northEast.setAttribute('position', `0 0.45 0`);
-    northEast.setAttribute('desc', 'Northeast');
-    this.el.appendChild(northEast);
-//  adding northEastEast
-    var northEastEast = document.createElement("a-entity");
-    northEastEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:15;`);
-    northEastEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    northEastEast.setAttribute('rotation', `-90 0 0`);
-    northEastEast.setAttribute('position', `0 0.45 0`);
-    northEastEast.setAttribute('desc', 'Northeast East');
-    this.el.appendChild(northEastEast);
-//  adding east
-    var east = document.createElement("a-entity");
-    east.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-15;`);
-    east.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
-    east.setAttribute('rotation', `-90 0 0`);
-    east.setAttribute('position', `0 0.45 0`);
-    east.setAttribute('desc', 'East');
-    this.el.appendChild(east);
-//  adding east title
-    var eastTitle = document.createElement("a-entity");
-    eastTitle.setAttribute('text', `value:East; align:center`);
-    eastTitle.setAttribute('scale', `3 3 3`);
-    eastTitle.setAttribute('position', `1.1 0 0`);
-    eastTitle.setAttribute('rotation', `0 0 -90`);
-    east.appendChild(eastTitle);
-//  adding eastSouthEast
-    var eastSouthEast = document.createElement("a-entity");
-    eastSouthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-30;`);
-    eastSouthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    eastSouthEast.setAttribute('rotation', `-90 0 0`);
-    eastSouthEast.setAttribute('position', `0 0.45 0`);
-    eastSouthEast.setAttribute('desc', 'Southeast East');
-    this.el.appendChild(eastSouthEast);
-//  adding southEast
-    var southEast = document.createElement("a-entity");
-    southEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-60;`);
-    southEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
-    southEast.setAttribute('rotation', `-90 0 0`);
-    southEast.setAttribute('position', `0 0.45 0`);
-    southEast.setAttribute('desc', 'Southeast');
-    this.el.appendChild(southEast);
-//  adding southSouthEast
-    var southSouthEast = document.createElement("a-entity");
-    southSouthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-75;`);
-    southSouthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    southSouthEast.setAttribute('rotation', `-90 0 0`);
-    southSouthEast.setAttribute('position', `0 0.45 0`);
-    southSouthEast.setAttribute('desc', 'South Southeast');
-    this.el.appendChild(southSouthEast);
-//  adding south
-    var south = document.createElement("a-entity");
-    south.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-105;`);
-    south.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
-    south.setAttribute('rotation', `-90 0 0`);
-    south.setAttribute('position', `0 0.45 0`);
-    south.setAttribute('desc', 'South');
-    this.el.appendChild(south);
-//  adding south title
-    var southTitle = document.createElement("a-entity");
-    southTitle.setAttribute('text', `value:South; align:center`);
-    southTitle.setAttribute('scale', `3 3 3`);
-    southTitle.setAttribute('position', `0 -1.1 0 `);
-    southTitle.setAttribute('rotation', `0 0 -180`);
-    south.appendChild(southTitle);
-//  adding southSouthWest
-    var southSouthWest = document.createElement("a-entity");
-    southSouthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-120;`);
-    southSouthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    southSouthWest.setAttribute('rotation', `-90 0 0`);
-    southSouthWest.setAttribute('position', `0 0.45 0`);
-    southSouthWest.setAttribute('desc', 'South Southwest');
-    this.el.appendChild(southSouthWest);
-//  adding southWest
-    var southWest = document.createElement("a-entity");
-    southWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-150;`);
-    southWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
-    southWest.setAttribute('rotation', `-90 0 0`);
-    southWest.setAttribute('position', `0 0.45 0`);
-    southWest.setAttribute('desc', 'Southwest');
-    this.el.appendChild(southWest);
-//  adding southWestWest
-    var southWestWest = document.createElement("a-entity");
-    southWestWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-165;`);
-    southWestWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    southWestWest.setAttribute('rotation', `-90 0 0`);
-    southWestWest.setAttribute('position', `0 0.45 0`);
-    southWestWest.setAttribute('desc', 'Southwest West');
-    this.el.appendChild(southWestWest);
-//  adding west
-    var west = document.createElement("a-entity");
-    west.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-195;`);
-    west.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
-    west.setAttribute('rotation', `-90 0 0`);
-    west.setAttribute('position', `0 0.45 0`);
-    west.setAttribute('desc', 'West');
-    this.el.appendChild(west);
-//  adding west title
-    var westTitle = document.createElement("a-entity");
-    westTitle.setAttribute('text', `value:West; align:center`);
-    westTitle.setAttribute('scale', `3 3 3`);
-    westTitle.setAttribute('position', `-1.1 0 0 `);
-    westTitle.setAttribute('rotation', `0 0 90`);
-    westTitle.setAttribute('lookat', `[camera]`);
-    west.appendChild(westTitle);
-//  adding westNorthWest
-    var westNorthWest = document.createElement("a-entity");
-    westNorthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-210;`);
-    westNorthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    westNorthWest.setAttribute('rotation', `-90 0 0`);
-    westNorthWest.setAttribute('position', `0 0.45 0`);
-    westNorthWest.setAttribute('desc', 'West Northwest');
-    this.el.appendChild(westNorthWest);
-//  adding northWest
-    var northWest = document.createElement("a-entity");
-    northWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-240;`);
-    northWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
-    northWest.setAttribute('rotation', `-90 0 0`);
-    northWest.setAttribute('position', `0 0.45 0`);
-    northWest.setAttribute('desc', 'Northwest');
-    this.el.appendChild(northWest);
-//  adding northNorthWest
-    var northNorthWest = document.createElement("a-entity");
-    northNorthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-255;`);
-    northNorthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
-    northNorthWest.setAttribute('rotation', `-90 0 0`);
-    northNorthWest.setAttribute('position', `0 0.45 0`);
-    northNorthWest.setAttribute('desc', 'North Northwest');
-    this.el.appendChild(northNorthWest);
+        //  adding north
+        var north = document.createElement("a-entity");
+        north.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:75;`);
+        north.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+        north.setAttribute('rotation', `-90 0 0`);
+        north.setAttribute('position', `0 0.45 0`);
+        north.setAttribute('desc', 'North');
+        this.el.appendChild(north);
+        //  adding north title
+        var northTitle = document.createElement("a-entity");
+        northTitle.setAttribute('text', `value:North; align:center`);
+        northTitle.setAttribute('scale', `3 3 3`);
+        northTitle.setAttribute('position', `0 1.1 0`);
+        northTitle.setAttribute('rotation', `0 0 0`);
+        north.appendChild(northTitle);
+        //  adding northNorthEast
+        var northNorthEast = document.createElement("a-entity");
+        northNorthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:60;`);
+        northNorthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        northNorthEast.setAttribute('rotation', `-90 0 0`);
+        northNorthEast.setAttribute('position', `0 0.45 0`);
+        northNorthEast.setAttribute('desc', 'North Northeast');
+        this.el.appendChild(northNorthEast);
+        //  adding northEast
+        var northEast = document.createElement("a-entity");
+        northEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:30;`);
+        northEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+        northEast.setAttribute('rotation', `-90 0 0`);
+        northEast.setAttribute('position', `0 0.45 0`);
+        northEast.setAttribute('desc', 'Northeast');
+        this.el.appendChild(northEast);
+        //  adding northEastEast
+        var northEastEast = document.createElement("a-entity");
+        northEastEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:15;`);
+        northEastEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        northEastEast.setAttribute('rotation', `-90 0 0`);
+        northEastEast.setAttribute('position', `0 0.45 0`);
+        northEastEast.setAttribute('desc', 'Northeast East');
+        this.el.appendChild(northEastEast);
+        //  adding east
+        var east = document.createElement("a-entity");
+        east.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-15;`);
+        east.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+        east.setAttribute('rotation', `-90 0 0`);
+        east.setAttribute('position', `0 0.45 0`);
+        east.setAttribute('desc', 'East');
+        this.el.appendChild(east);
+        //  adding east title
+        var eastTitle = document.createElement("a-entity");
+        eastTitle.setAttribute('text', `value:East; align:center`);
+        eastTitle.setAttribute('scale', `3 3 3`);
+        eastTitle.setAttribute('position', `1.1 0 0`);
+        eastTitle.setAttribute('rotation', `0 0 -90`);
+        east.appendChild(eastTitle);
+        //  adding eastSouthEast
+        var eastSouthEast = document.createElement("a-entity");
+        eastSouthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-30;`);
+        eastSouthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        eastSouthEast.setAttribute('rotation', `-90 0 0`);
+        eastSouthEast.setAttribute('position', `0 0.45 0`);
+        eastSouthEast.setAttribute('desc', 'Southeast East');
+        this.el.appendChild(eastSouthEast);
+        //  adding southEast
+        var southEast = document.createElement("a-entity");
+        southEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-60;`);
+        southEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+        southEast.setAttribute('rotation', `-90 0 0`);
+        southEast.setAttribute('position', `0 0.45 0`);
+        southEast.setAttribute('desc', 'Southeast');
+        this.el.appendChild(southEast);
+        //  adding southSouthEast
+        var southSouthEast = document.createElement("a-entity");
+        southSouthEast.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-75;`);
+        southSouthEast.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        southSouthEast.setAttribute('rotation', `-90 0 0`);
+        southSouthEast.setAttribute('position', `0 0.45 0`);
+        southSouthEast.setAttribute('desc', 'South Southeast');
+        this.el.appendChild(southSouthEast);
+        //  adding south
+        var south = document.createElement("a-entity");
+        south.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-105;`);
+        south.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+        south.setAttribute('rotation', `-90 0 0`);
+        south.setAttribute('position', `0 0.45 0`);
+        south.setAttribute('desc', 'South');
+        this.el.appendChild(south);
+        //  adding south title
+        var southTitle = document.createElement("a-entity");
+        southTitle.setAttribute('text', `value:South; align:center`);
+        southTitle.setAttribute('scale', `3 3 3`);
+        southTitle.setAttribute('position', `0 -1.1 0 `);
+        southTitle.setAttribute('rotation', `0 0 -180`);
+        south.appendChild(southTitle);
+        //  adding southSouthWest
+        var southSouthWest = document.createElement("a-entity");
+        southSouthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-120;`);
+        southSouthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        southSouthWest.setAttribute('rotation', `-90 0 0`);
+        southSouthWest.setAttribute('position', `0 0.45 0`);
+        southSouthWest.setAttribute('desc', 'South Southwest');
+        this.el.appendChild(southSouthWest);
+        //  adding southWest
+        var southWest = document.createElement("a-entity");
+        southWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-150;`);
+        southWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+        southWest.setAttribute('rotation', `-90 0 0`);
+        southWest.setAttribute('position', `0 0.45 0`);
+        southWest.setAttribute('desc', 'Southwest');
+        this.el.appendChild(southWest);
+        //  adding southWestWest
+        var southWestWest = document.createElement("a-entity");
+        southWestWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-165;`);
+        southWestWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        southWestWest.setAttribute('rotation', `-90 0 0`);
+        southWestWest.setAttribute('position', `0 0.45 0`);
+        southWestWest.setAttribute('desc', 'Southwest West');
+        this.el.appendChild(southWestWest);
+        //  adding west
+        var west = document.createElement("a-entity");
+        west.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-195;`);
+        west.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.55;`);
+        west.setAttribute('rotation', `-90 0 0`);
+        west.setAttribute('position', `0 0.45 0`);
+        west.setAttribute('desc', 'West');
+        this.el.appendChild(west);
+        //  adding west title
+        var westTitle = document.createElement("a-entity");
+        westTitle.setAttribute('text', `value:West; align:center`);
+        westTitle.setAttribute('scale', `3 3 3`);
+        westTitle.setAttribute('position', `-1.1 0 0 `);
+        westTitle.setAttribute('rotation', `0 0 90`);
+        westTitle.setAttribute('lookat', `[camera]`);
+        west.appendChild(westTitle);
+        //  adding westNorthWest
+        var westNorthWest = document.createElement("a-entity");
+        westNorthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-210;`);
+        westNorthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        westNorthWest.setAttribute('rotation', `-90 0 0`);
+        westNorthWest.setAttribute('position', `0 0.45 0`);
+        westNorthWest.setAttribute('desc', 'West Northwest');
+        this.el.appendChild(westNorthWest);
+        //  adding northWest
+        var northWest = document.createElement("a-entity");
+        northWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:30;thetaStart:-240;`);
+        northWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.25;`);
+        northWest.setAttribute('rotation', `-90 0 0`);
+        northWest.setAttribute('position', `0 0.45 0`);
+        northWest.setAttribute('desc', 'Northwest');
+        this.el.appendChild(northWest);
+        //  adding northNorthWest
+        var northNorthWest = document.createElement("a-entity");
+        northNorthWest.setAttribute('geometry', `primitive: ring; radiusInner:0.25; radiusOuter:1;thetaLength:15;thetaStart:-255;`);
+        northNorthWest.setAttribute('material', `shader: flat; side:front; color:red; opacity:0.35;`);
+        northNorthWest.setAttribute('rotation', `-90 0 0`);
+        northNorthWest.setAttribute('position', `0 0.45 0`);
+        northNorthWest.setAttribute('desc', 'North Northwest');
+        this.el.appendChild(northNorthWest);
 
-// add mouseenter for each of the rings with description
-    this.utterfacing = _utterfacing = new SpeechSynthesisUtterance();
-    
-    this.el.addEventListener('mouseenter', function(evt){
-      var desc = evt.detail.intersection.object.el.getAttribute('desc');
-      var facing = "You are facing " + desc;
-      var voices = synth.getVoices();
+        // add mouseenter for each of the rings with description
+        this.utterfacing = _utterfacing = new SpeechSynthesisUtterance();
 
-      _utterfacing.text = facing;
-      _utterfacing.voice = voices[48];
-      _utterfacing.pitch = 1;
-      _utterfacing.rate = 1;
+        this.el.addEventListener('mouseenter', function(evt) {
+            var desc = evt.detail.intersection.object.el.getAttribute('desc');
+            var facing = "You are facing " + desc;
+            var voices = synth.getVoices();
 
-      if(desc){
-        synth.speak(_utterfacing);
-        console.log('desc: '+ facing);
-      }
+            _utterfacing.text = facing;
+            _utterfacing.voice = voices[48];
+            _utterfacing.pitch = 1;
+            _utterfacing.rate = 1;
+
+            if (desc) {
+                synth.speak(_utterfacing);
+                console.log('desc: ' + facing);
+            }
 
 
-      // console.log('clicked @: ', evt.detail.intersection.point);
-      // console.log('desc @: ', evt.detail.intersection.object.el.getAttribute('desc'));
-      // console.dir(evt.detail.intersection.object.el);
+            // console.log('clicked @: ', evt.detail.intersection.point);
+            // console.log('desc @: ', evt.detail.intersection.object.el.getAttribute('desc'));
+            // console.dir(evt.detail.intersection.object.el);
 
-    });
-    
-    this.el.addEventListener('mouseleave', function () {
-      synth.cancel();
-    });
+        });
 
-  },
+        this.el.addEventListener('mouseleave', function() {
+            synth.cancel();
+        });
 
-  show: function () {
-    this.el.setAttribute('scale', '1 1 1');
-  },
+    },
 
-  hide: function () {
-    this.el.setAttribute('scale', '0.03 0.03 0.03');
-  },
+    show: function() {
+        this.el.setAttribute('scale', '1 1 1');
+    },
 
-  tick: function () {   
-    var newPos = new THREE.Vector3();
-    newPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
-    this.el.setAttribute('position', newPos.x + ' 0 ' + newPos.z);
-  }
+    hide: function() {
+        this.el.setAttribute('scale', '0.03 0.03 0.03');
+    },
+
+    tick: function() {
+        var newPos = new THREE.Vector3();
+        newPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
+        this.el.setAttribute('position', newPos.x + ' 0 ' + newPos.z);
+    }
 
 });
 
@@ -762,5 +762,3 @@ AFRAME.registerComponent('gravr-avatar', {
 });
 
 */
-
-
