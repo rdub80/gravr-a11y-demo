@@ -1,6 +1,19 @@
 var synth = window.speechSynthesis;
 var EPS = 0.1;
 
+var hideHoverArea = function(targetHoverArea) {
+    targetHoverArea = targetHoverArea.replace('description:','').replace(/\s/g, '');
+    
+    var hoverAreaElements = document.querySelectorAll(".hoverArea");
+
+    hoverAreaElements.forEach(function(hoverAreaElement) {
+        hoverAreaElement.setAttribute('visible', true);
+    });
+
+    var targetAreaElement = document.querySelector("#" + targetHoverArea);
+    targetAreaElement.setAttribute('visible', false);
+}
+
 //Play walking sound.
 var walkSound = function() {
     new Audio('../sounds/step.mp3').play();
@@ -102,6 +115,7 @@ AFRAME.registerComponent('beacon-controls', {
         if (position.distanceTo(targetPosition) < EPS) {
             this.beacon = null;
             this.el.emit('navigation-end', { beacon: beacon });
+            hideHoverArea(beacon.attributes.beacon.value);
             return offset.set(0, 0, 0);
         }
         offset.setLength(data.animateSpeed);
@@ -143,6 +157,8 @@ AFRAME.registerComponent('beacon', {
         platform.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.5;`);
         platform.setAttribute('rotation', `-90 0 0`);
         platform.setAttribute('position', `0 0.001 0`);
+        platform.setAttribute('id', descriptionData.replace('description:','').replace(/\s/g, ''));
+        platform.setAttribute('class', "hoverArea");
         this.el.appendChild(platform);
 
         //  adding dynamically a large hoverzone for beacons
@@ -160,7 +176,7 @@ AFRAME.registerComponent('beacon', {
         this.el.appendChild(desc);
 
         this.el.addEventListener('mouseenter', function() {
-            speak("You are looking at the Beacon " + descriptionData)
+            speak("You are looking at the Beacon " + descriptionData);
         });
 
         this.el.addEventListener('mouseleave', function() {
@@ -276,7 +292,7 @@ AFRAME.registerComponent('poi', {
         });
 
         this.el.addEventListener('mouseleave', function() {
-            silence()
+            silence();
         });
 
 
@@ -611,11 +627,6 @@ AFRAME.registerComponent('orientation', {
             if (desc) {
                 speak("You are facing " + desc);
             }
-
-
-            // console.log('clicked @: ', evt.detail.intersection.point);
-            // console.log('desc @: ', evt.detail.intersection.object.el.getAttribute('desc'));
-            // console.dir(evt.detail.intersection.object.el);
 
         });
 
