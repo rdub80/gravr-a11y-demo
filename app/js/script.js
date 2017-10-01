@@ -609,7 +609,7 @@ AFRAME.registerComponent('orientation', {
             var desc = evt.detail.intersection.object.el.getAttribute('desc');
 
             if (desc) {
-                synth.speak("You are facing " + desc);
+                speak("You are facing " + desc);
             }
 
 
@@ -620,7 +620,7 @@ AFRAME.registerComponent('orientation', {
         });
 
         this.el.addEventListener('mouseleave', function() {
-            synth.cancel();
+            silence();
         });
 
     },
