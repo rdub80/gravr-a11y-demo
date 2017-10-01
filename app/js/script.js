@@ -3,9 +3,7 @@ var EPS = 0.1;
 
 //Play walking sound.
 var walkSound = function() {
-    setTimeout(function() {
-        new Audio('../sounds/step.mp3').play();
-    }, 1000)
+    new Audio('../sounds/step.mp3').play();
 }
 
 var speak = function(words) {
@@ -92,10 +90,10 @@ AFRAME.registerComponent('beacon-controls', {
 
         this.sync();
 
-        //Play walking audio every other position change and not when already there.
+        //Play walking audio every other position change.
         this.currentVal = parseInt(position.distanceTo(targetPosition));
 
-        if (this.currentVal !== this.prevVal && this.currentVal !== this.everyOther && this.currentVal > 1) {
+        if (this.currentVal !== this.prevVal && this.currentVal !== this.everyOther) {
             walkSound();
             this.prevVal = this.currentVal;
             this.everyOther = this.prevVal - 2;
