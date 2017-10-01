@@ -1,3 +1,29 @@
+var synth = window.speechSynthesis;
+var EPS = 0.1;
+
+//Play walking sound.
+var walkSound = function() {
+    setTimeout(function() {
+        new Audio('../sounds/step.mp3').play();
+    }, 1000)
+}
+
+var speak = function(words) {
+    silence();
+
+    var utterThis = new SpeechSynthesisUtterance(words);
+    var voices = synth.getVoices();
+    utterThis.voice = voices[48];
+    utterThis.pitch = 1;
+    utterThis.rate = 1;
+
+    synth.speak(utterThis);
+}
+
+var silence = function() {
+    synth.cancel();
+}
+
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
     name = name.replace(/[\[\]]/g, "\\$&");
@@ -7,15 +33,6 @@ function getParameterByName(name, url) {
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
-/*
-// query string: ?foo=lorem&bar=&baz
-var foo = getParameterByName('foo'); // "lorem"
-var bar = getParameterByName('bar'); // "" (present with empty value)
-var baz = getParameterByName('baz'); // "" (present with no value)
-var qux = getParameterByName('qux'); // null (absent)
-*/
-var synth = window.speechSynthesis;
-var EPS = 0.1;
 
 AFRAME.registerComponent('beacon-controls', {
     schema: {
@@ -50,12 +67,14 @@ AFRAME.registerComponent('beacon-controls', {
         this.beacon = beacon;
         el.emit('navigation-start', { beacon: beacon });
 
-        if (this.data.mode === 'teleport') {
-            this.sync();
-            this.el.setAttribute('position', this.targetPosition);
-            this.beacon = null;
-            el.emit('navigation-end', { beacon: beacon });
-        }
+
+        //currently UNUSED while animating beacon-controls.
+        // if (this.data.mode === 'teleport') {
+        //     this.sync();
+        //     this.el.setAttribute('position', this.targetPosition);
+        //     this.beacon = null;
+        //     el.emit('navigation-end', { beacon: beacon });
+        // }
     },
 
     isVelocityActive: function() {
@@ -72,6 +91,16 @@ AFRAME.registerComponent('beacon-controls', {
             beacon = this.beacon;
 
         this.sync();
+
+        //Play walking audio every other position change and not when already there.
+        this.currentVal = parseInt(position.distanceTo(targetPosition));
+
+        if (this.currentVal !== this.prevVal && this.currentVal !== this.everyOther && this.currentVal > 1) {
+            walkSound();
+            this.prevVal = this.currentVal;
+            this.everyOther = this.prevVal - 2;
+        }
+
         if (position.distanceTo(targetPosition) < EPS) {
             this.beacon = null;
             this.el.emit('navigation-end', { beacon: beacon });
@@ -90,28 +119,6 @@ AFRAME.registerComponent('beacon-controls', {
         targetPosition.copy(this.beacon.object3D.getWorldPosition());
         targetPosition.add(this.beacon.components.beacon.getOffset());
         offset.copy(targetPosition).sub(position);
-
-        //read description of beacon once - issue does not recognize different desc
-        this.readOnce(this.beacon.components.beacon.getDescription());
-
-    },
-    readOnce: function(text) {
-        if (this.readOnce.done) return;
-
-        var tts = "You're walking towards the Beacon " + text;
-        var utterThis = new SpeechSynthesisUtterance(tts);
-        var voices = synth.getVoices();
-        utterThis.voice = voices[48];
-        utterThis.pitch = 1;
-        utterThis.rate = 1;
-
-        synth.speak(utterThis);
-
-        utterThis.onend = function(event) {
-            console.log('Utterance has finished being spoken after ' + event.elapsedTime + ' milliseconds.');
-            this.readOnce.done = false;
-        }
-        this.readOnce.done = true;
     }
 
 });
@@ -130,6 +137,7 @@ AFRAME.registerComponent('beacon', {
         this.fire = this.fire.bind(this);
         this.offset = new THREE.Vector3();
         this.vector = new THREE.Vector3();
+        var descriptionData = this.data.description;
 
         //  adding ring platform
         var platform = document.createElement("a-entity");
@@ -148,26 +156,21 @@ AFRAME.registerComponent('beacon', {
 
         //  adding description
         var desc = document.createElement("a-entity");
-        desc.setAttribute('text', `value: ${this.data.description}; align:center`);
+        desc.setAttribute('text', `value: ${descriptionData}; align:center`);
         desc.setAttribute('scale', `10 10 10`);
         desc.setAttribute('position', `0 1 0`);
         this.el.appendChild(desc);
 
-
-        var lookingAt = "You are looking at the Beacon " + this.data.description;
-        this.utterLookingAt = _utterLookingAt = new SpeechSynthesisUtterance();
-
         this.el.addEventListener('mouseenter', function() {
-            var voices = synth.getVoices();
-            _utterLookingAt.text = lookingAt;
-            _utterLookingAt.voice = voices[48];
-            _utterLookingAt.pitch = 1;
-            _utterLookingAt.rate = 1;
-            synth.speak(_utterLookingAt);
+            speak("You are looking at the Beacon " + descriptionData)
         });
 
         this.el.addEventListener('mouseleave', function() {
-            synth.cancel();
+            silence();
+        });
+
+        this.el.addEventListener('click', function() {
+            speak("You're walking towards the Beacon " + descriptionData);
         });
 
     },
@@ -268,21 +271,14 @@ AFRAME.registerComponent('poi', {
         description: { default: '' }
     },
     init: function() {
-
-        var lookingAt = "You are looking at " + this.data.description;
-        this.utterLookingAtPOI = _utterLookingAtPOI = new SpeechSynthesisUtterance();
+        var pointOfInterest = this.data.description;
 
         this.el.addEventListener('mouseenter', function() {
-            var voices = synth.getVoices();
-            _utterLookingAtPOI.text = lookingAt;
-            _utterLookingAtPOI.voice = voices[48];
-            _utterLookingAtPOI.pitch = 1;
-            _utterLookingAtPOI.rate = 1;
-            synth.speak(_utterLookingAtPOI);
+            speak("You are looking at " + pointOfInterest);
         });
 
         this.el.addEventListener('mouseleave', function() {
-            synth.cancel();
+            silence()
         });
 
 
@@ -611,22 +607,11 @@ AFRAME.registerComponent('orientation', {
         northNorthWest.setAttribute('desc', 'North Northwest');
         this.el.appendChild(northNorthWest);
 
-        // add mouseenter for each of the rings with description
-        this.utterfacing = _utterfacing = new SpeechSynthesisUtterance();
-
         this.el.addEventListener('mouseenter', function(evt) {
             var desc = evt.detail.intersection.object.el.getAttribute('desc');
-            var facing = "You are facing " + desc;
-            var voices = synth.getVoices();
-
-            _utterfacing.text = facing;
-            _utterfacing.voice = voices[48];
-            _utterfacing.pitch = 1;
-            _utterfacing.rate = 1;
 
             if (desc) {
-                synth.speak(_utterfacing);
-                console.log('desc: ' + facing);
+                synth.speak("You are facing " + desc);
             }
 
 
