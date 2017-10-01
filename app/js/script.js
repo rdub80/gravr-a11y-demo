@@ -110,10 +110,9 @@ AFRAME.registerComponent('beacon-controls', {
         //Play walking audio every other position change.
         this.currentVal = parseInt(position.distanceTo(targetPosition));
 
-        if (this.currentVal !== this.prevVal && this.currentVal !== this.everyOther) {
+        if (this.currentVal !== this.prevVal) {
             walkSound();
             this.prevVal = this.currentVal;
-            this.everyOther = this.prevVal - 2;
         }
 
         if (position.distanceTo(targetPosition) < EPS) {
