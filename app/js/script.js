@@ -16,7 +16,10 @@ var hideHoverArea = function(targetHoverArea) {
 
 //Play walking sound.
 var walkSound = function() {
-    new Audio('../sounds/step.mp3').play();
+//    new Audio('../sounds/step.mp3').play();
+    var step = new Audio('../sounds/step.mp3');
+    step.volume = 0.5;
+    step.play();
 }
 
 var speak = function(words) {
@@ -25,6 +28,7 @@ var speak = function(words) {
     var utterThis = new SpeechSynthesisUtterance(words);
     var voices = synth.getVoices();
     utterThis.voice = voices[48];
+    utterThis.lang = 'en-US';
     utterThis.pitch = 1;
     utterThis.rate = 1;
 
@@ -49,7 +53,7 @@ AFRAME.registerComponent('beacon-controls', {
     schema: {
         enabled: { default: true },
         mode: { default: 'teleport', oneOf: ['teleport', 'animate'] },
-        animateSpeed: { default: 3.0 }
+        animateSpeed: { default: 2.0 }
     },
 
     init: function() {
@@ -151,14 +155,15 @@ AFRAME.registerComponent('beacon', {
         this.vector = new THREE.Vector3();
         var descriptionData = this.data.description;
 
+        this.el.setAttribute('id', descriptionData.replace('description:','').replace(/\s/g, ''));
+        this.el.setAttribute('class', "hoverArea");
+
         //  adding ring platform
         var platform = document.createElement("a-entity");
         platform.setAttribute('geometry', `primitive: ring; radiusInner:0.65; radiusOuter:0.85;`);
         platform.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.5;`);
         platform.setAttribute('rotation', `-90 0 0`);
         platform.setAttribute('position', `0 0.001 0`);
-        platform.setAttribute('id', descriptionData.replace('description:','').replace(/\s/g, ''));
-        platform.setAttribute('class', "hoverArea");
         this.el.appendChild(platform);
 
         //  adding dynamically a large hoverzone for beacons
@@ -245,8 +250,6 @@ AFRAME.registerComponent('beacon', {
     getDescription: function() {
         return this.data.description;
     }
-
-
 });
 
 
@@ -275,8 +278,6 @@ AFRAME.registerComponent('lookat-cam', {
 });
 
 
-
-
 // Point of interest
 AFRAME.registerComponent('poi', {
     schema: {
@@ -295,7 +296,6 @@ AFRAME.registerComponent('poi', {
             silence();
         });
 
-
         // this.el.addEventListener('mouseenter', function (evt) {            
         // var clickActionFunctionName = guiInteractable.clickAction;
         // console.log("in button, clickActionFunctionName: "+clickActionFunctionName);
@@ -306,8 +306,6 @@ AFRAME.registerComponent('poi', {
         // if (typeof clickActionFunction === "function") clickActionFunction();
         // });
 
-
-
     },
     setHoverAction: function(action) {
         this.data.hoverAction = action; //change function dynamically
@@ -315,115 +313,10 @@ AFRAME.registerComponent('poi', {
     setClickAction: function(action) {
         this.data.clickAction = action; //change function dynamically
     },
-
 });
 
 
-
-// calculate motion speed
-AFRAME.registerComponent('track-gaze', {
-    schema: {
-        dist: { type: 'number', default: -1.5 },
-    },
-    init: function() {
-        var data = this.data;
-        var _this = this;
-        var el = this.el;
-
-        this.cameraEl = document.querySelector('a-entity[camera]');
-        this.panel = document.querySelector('a-entity[id="panel"]');
-
-        this.yaxis = new THREE.Vector3(0, 1, 0);
-        this.zaxis = new THREE.Vector3(0, 0, 1);
-        this.pivot = new THREE.Object3D();
-        //      this.panel.object3D.position.set(0, this.cameraEl.object3D.getWorldPosition().y, data.dist);
-        this.panel.object3D.position.set(0, 0, data.dist);
-        el.sceneEl.object3D.add(this.pivot);
-        this.pivot.add(this.panel.object3D);
-
-        //    this.panel.setAttribute("position", "0 " + this.cameraEl.object3D.getWorldPosition().y + " " + data.dist);
-
-        this.cameraEl.addEventListener('componentchanged', function(evt) {
-            if (evt.detail.name === 'rotation') {
-                _this.posTrack(evt.detail.newData)
-            }
-        });
-        setTimeout(function() { _this.updatePos(); }, 10000);
-
-    },
-    posTrack: function(newData) {
-
-        var horizontal = roundNumber(newData.x, 2);
-        var vertical = roundNumber(newData.y, 2);
-        document.querySelector('a-text[id="horizontal"]').setAttribute("value", horizontal);
-        document.querySelector('a-text[id="vertical"]').setAttribute("value", vertical);
-        /**/
-
-        var rotateY = this.cameraEl.object3D.getWorldRotation().y;
-        var rotateX = this.cameraEl.object3D.getWorldRotation().x;
-        console.log("rotateY: " + radiansToDegrees(rotateY) + " - rotateX: " + radiansToDegrees(rotateX));
-
-        // var panelWdithLeft = 0;
-        // var panelWdithRight = 0;
-
-        var panelWdith = 0;
-        var panelHeight = 0;
-        var panelDistance = this.data.dist * 2;
-
-        // x; tan( Rotation Deg ) = length (x) /distance (z)
-        // Tangent = opposite/adjacent
-
-        // if(rotateY>0){
-        //  panelWdithLeft = Math.tan(rotateY) * panelDistance;
-        // }else{
-        //  rotateY = -rotateY;
-        //  panelWdithLeft = 0;
-        //  panelWdithRight = Math.tan(rotateY) * panelDistance;
-        // }
-
-        var posRotY = -rotateY > 0 ? -rotateY : rotateY;
-        panelWdith = Math.tan(posRotY) * panelDistance;
-
-        var posRotX = -rotateX > 0 ? -rotateX : rotateX;
-        panelHeight = Math.tan(posRotX) * panelDistance;
-
-        console.log("panelWdith: " + panelWdith);
-        console.log("panelHeight: " + panelHeight);
-
-        this.panel.setAttribute("geometry", "width", panelWdith);
-        this.panel.setAttribute("geometry", "height", panelHeight);
-
-    },
-    setPos: function() {
-        var direction = this.zaxis.clone();
-        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
-        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
-        direction.sub(ycomponent);
-        direction.normalize();
-
-        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
-        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
-        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
-        console.log("fired updatePos");
-    },
-    updatePos: function() {
-        var direction = this.zaxis.clone();
-        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
-        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
-        direction.sub(ycomponent);
-        direction.normalize();
-
-        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
-        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
-        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
-        console.log("fired updatePos");
-    },
-
-});
-
-
-
-// Point of interest
+// Compass
 AFRAME.registerComponent('orientation', {
     schema: {
         pitch: { type: 'number', default: 0 }, // max: Math.PI/2, min: - Math.PI/2  
@@ -649,9 +542,108 @@ AFRAME.registerComponent('orientation', {
         newPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
         this.el.setAttribute('position', newPos.x + ' 0 ' + newPos.z);
     }
-
 });
 
+
+// calculate motion speed
+AFRAME.registerComponent('track-gaze', {
+    schema: {
+        dist: { type: 'number', default: -1.5 },
+    },
+    init: function() {
+        var data = this.data;
+        var _this = this;
+        var el = this.el;
+
+        this.cameraEl = document.querySelector('a-entity[camera]');
+        this.panel = document.querySelector('a-entity[id="panel"]');
+
+        this.yaxis = new THREE.Vector3(0, 1, 0);
+        this.zaxis = new THREE.Vector3(0, 0, 1);
+        this.pivot = new THREE.Object3D();
+        //      this.panel.object3D.position.set(0, this.cameraEl.object3D.getWorldPosition().y, data.dist);
+        this.panel.object3D.position.set(0, 0, data.dist);
+        el.sceneEl.object3D.add(this.pivot);
+        this.pivot.add(this.panel.object3D);
+
+        //    this.panel.setAttribute("position", "0 " + this.cameraEl.object3D.getWorldPosition().y + " " + data.dist);
+
+        this.cameraEl.addEventListener('componentchanged', function(evt) {
+            if (evt.detail.name === 'rotation') {
+                _this.posTrack(evt.detail.newData)
+            }
+        });
+        setTimeout(function() { _this.updatePos(); }, 10000);
+
+    },
+    posTrack: function(newData) {
+
+        var horizontal = roundNumber(newData.x, 2);
+        var vertical = roundNumber(newData.y, 2);
+        document.querySelector('a-text[id="horizontal"]').setAttribute("value", horizontal);
+        document.querySelector('a-text[id="vertical"]').setAttribute("value", vertical);
+        /**/
+
+        var rotateY = this.cameraEl.object3D.getWorldRotation().y;
+        var rotateX = this.cameraEl.object3D.getWorldRotation().x;
+        console.log("rotateY: " + radiansToDegrees(rotateY) + " - rotateX: " + radiansToDegrees(rotateX));
+
+        // var panelWdithLeft = 0;
+        // var panelWdithRight = 0;
+
+        var panelWdith = 0;
+        var panelHeight = 0;
+        var panelDistance = this.data.dist * 2;
+
+        // x; tan( Rotation Deg ) = length (x) /distance (z)
+        // Tangent = opposite/adjacent
+
+        // if(rotateY>0){
+        //  panelWdithLeft = Math.tan(rotateY) * panelDistance;
+        // }else{
+        //  rotateY = -rotateY;
+        //  panelWdithLeft = 0;
+        //  panelWdithRight = Math.tan(rotateY) * panelDistance;
+        // }
+
+        var posRotY = -rotateY > 0 ? -rotateY : rotateY;
+        panelWdith = Math.tan(posRotY) * panelDistance;
+
+        var posRotX = -rotateX > 0 ? -rotateX : rotateX;
+        panelHeight = Math.tan(posRotX) * panelDistance;
+
+        console.log("panelWdith: " + panelWdith);
+        console.log("panelHeight: " + panelHeight);
+
+        this.panel.setAttribute("geometry", "width", panelWdith);
+        this.panel.setAttribute("geometry", "height", panelHeight);
+
+    },
+    setPos: function() {
+        var direction = this.zaxis.clone();
+        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
+        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
+        direction.sub(ycomponent);
+        direction.normalize();
+
+        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
+        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
+        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
+        console.log("fired updatePos");
+    },
+    updatePos: function() {
+        var direction = this.zaxis.clone();
+        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
+        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
+        direction.sub(ycomponent);
+        direction.normalize();
+
+        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
+        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
+        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
+        console.log("fired updatePos");
+    },
+});
 
 
 // var defaultCameraUserHeight; 
