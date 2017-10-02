@@ -1,5 +1,6 @@
 var synth = window.speechSynthesis;
 var EPS = 0.1;
+var WALKING, STEP;
 
 // ENABLE AUDIO ON LOAD. SATISFY MOBILE IOS & ANDROID BROWSER
 window.addEventListener('load',
@@ -30,9 +31,10 @@ var hideHoverArea = function(targetHoverArea) {
 //Play walking sound.
 var walkSound = function(volume) {
     //    new Audio('../sounds/step.mp3').play();
-    var step = new Audio('../sounds/step.mp3');
-    step.volume = volume;
-    step.play();
+    STEP = new Audio('../sounds/step.mp3');
+    STEP.volume = volume;
+    STEP.loop = false;
+    STEP.play();
 }
 
 var ambientSounds = function() {
@@ -127,16 +129,17 @@ AFRAME.registerComponent('beacon-controls', {
             beacon = this.beacon;
 
         this.sync();
-
+        WALKING = true;
         //Play walking audio every other position change.
-        this.currentVal = parseInt(position.distanceTo(targetPosition));
+        // this.currentVal = parseInt(position.distanceTo(targetPosition));
 
-        if (this.currentVal !== this.prevVal) {
-            walkSound(0.5);
-            this.prevVal = this.currentVal;
-        }
+        // if (this.currentVal !== this.prevVal) {
+        //     WALKING = true;
+        //     this.prevVal = this.currentVal;
+        // }
 
         if (position.distanceTo(targetPosition) < EPS) {
+            WALKING = false;
             this.beacon = null;
             this.el.emit('navigation-end', { beacon: beacon });
             hideHoverArea(beacon.attributes.beacon.value);
@@ -155,6 +158,7 @@ AFRAME.registerComponent('beacon-controls', {
         targetPosition.copy(this.beacon.object3D.getWorldPosition());
         targetPosition.add(this.beacon.components.beacon.getOffset());
         offset.copy(targetPosition).sub(position);
+        WALKING = false;
     }
 
 });
