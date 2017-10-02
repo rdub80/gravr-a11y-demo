@@ -1,9 +1,22 @@
 var synth = window.speechSynthesis;
 var EPS = 0.1;
 
+// ENABLE AUDIO ON LOAD. SATISFY MOBILE IOS & ANDROID BROWSER
+window.addEventListener('load',
+        function() {
+        var launchVr = document.querySelector("#preloader-modal button");
+        
+        launchVr.addEventListener("click", function() {
+            console.log("Entering Experience");
+            ambientSounds();
+        });
+
+    }, false);
+
+
 var hideHoverArea = function(targetHoverArea) {
-    targetHoverArea = targetHoverArea.replace('description:','').replace(/\s/g, '');
-    
+    targetHoverArea = targetHoverArea.replace('description:', '').replace(/\s/g, '');
+
     var hoverAreaElements = document.querySelectorAll(".hoverArea");
 
     hoverAreaElements.forEach(function(hoverAreaElement) {
@@ -15,11 +28,19 @@ var hideHoverArea = function(targetHoverArea) {
 }
 
 //Play walking sound.
-var walkSound = function() {
-//    new Audio('../sounds/step.mp3').play();
+var walkSound = function(volume) {
+    //    new Audio('../sounds/step.mp3').play();
     var step = new Audio('../sounds/step.mp3');
-    step.volume = 0.5;
+    step.volume = volume;
     step.play();
+}
+
+var ambientSounds = function() {
+    var soundElements = document.querySelectorAll(".ambientSound");
+
+    soundElements.forEach(function(element){
+        element.components.sound.playSound();
+    })
 }
 
 var speak = function(words) {
@@ -111,7 +132,7 @@ AFRAME.registerComponent('beacon-controls', {
         this.currentVal = parseInt(position.distanceTo(targetPosition));
 
         if (this.currentVal !== this.prevVal) {
-            walkSound();
+            walkSound(0.5);
             this.prevVal = this.currentVal;
         }
 
@@ -154,7 +175,7 @@ AFRAME.registerComponent('beacon', {
         this.vector = new THREE.Vector3();
         var descriptionData = this.data.description;
 
-        this.el.setAttribute('id', descriptionData.replace('description:','').replace(/\s/g, ''));
+        this.el.setAttribute('id', descriptionData.replace('description:', '').replace(/\s/g, ''));
         this.el.setAttribute('class', "hoverArea");
 
         //  adding ring platform
