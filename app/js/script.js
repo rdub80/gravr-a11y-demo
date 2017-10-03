@@ -72,6 +72,7 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
+
 AFRAME.registerComponent('beacon-controls', {
     schema: {
         enabled: { default: true },

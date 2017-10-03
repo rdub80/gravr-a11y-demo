@@ -177,8 +177,8 @@
         <a-entity class="ambientSound" id="fountainwater" geometry="primitive:box; width:0.25; height:0.25; depth:0.25;" material="color:red;" position="-2.25 1.75 0.75" sound="src: url(sounds/fountain.mp3); loop:true; volume:2;" poi="description:A small fountain in the center of the piazza">
             <a-entity lookat-cam text="value: A small fountain in the center of the piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
         </a-entity>
-        <a-entity class="ambientSound" id="restaurant" geometry="primitive:box; width:7; height:1; depth:1;" material="color:red;" position="-9 0.5 -12" sound="src: url(sounds/cafe.mp3); loop:true; volume:2;" poi="description:People sitting in an outdoors cafe">
-            <a-entity lookat-cam text="value: People sitting in an outdoors cafe; align:center" scale="5 5 5" position="0 2 0"></a-entity>
+        <a-entity class="ambientSound" id="restaurant" geometry="primitive:box; width:7; height:1; depth:1;" material="color:red;" position="-9 0.5 -12" sound="src: url(sounds/cafe.mp3); loop:true; volume:2;" poi="description:People sitting in an outdoor restaurant">
+            <a-entity lookat-cam text="value: People sitting in an outdoor restaurant; align:center" scale="5 5 5" position="0 2 0"></a-entity>
         </a-entity>
         <a-entity class="ambientSound" id="pigeons" geometry="primitive:box; width:1; height:1; depth:1;" material="color:red;" position="-9 0.5 11" sound="src: url(sounds/pigeons.mp3); loop:true; volume:3;" poi="description:A person feeding pigeons">
             <a-entity lookat-cam text="value: Person feeding pigeons; align:center" scale="5 5 5" position="0 2 0"></a-entity>
@@ -207,11 +207,10 @@
     </a-scene>
     <script type="text/javascript">
 
-
-
     document.querySelector(".enter-vr").addEventListener('click', function(){
-      document.querySelector("#background-landing").remove();
-      document.querySelector("a-scene").style.display = "block";
+        document.querySelector("#background-landing").remove();
+        document.querySelector("a-scene").style.display = "block";
+        speak("You are now standing in the virtual town square ");
     });
 
     //PLAY WALKING AUDIO ON CLICK
