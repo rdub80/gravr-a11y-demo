@@ -2,14 +2,19 @@ var synth = window.speechSynthesis;
 var EPS = 0.1;
 var WALKING, STEP;
 
-// ENABLE AUDIO ON LOAD. SATISFY MOBILE IOS & ANDROID BROWSER
+//ON LOAD
+//Enable Audio. SATISFY MOBILE IOS & ANDROID BROWSER
+//Remove Landing page.
 window.addEventListener('load',
-        function() {
-        var launchVr = document.querySelector("#preloader-modal button");
-        
+    function() {
+        var launchVr = document.querySelector("#enter-vr");
+
         launchVr.addEventListener("click", function() {
             console.log("Entering Experience");
             ambientSounds();
+            speak("You are now standing in the virtual town square ");
+            document.querySelector("#background-landing").remove();
+            document.querySelector("a-scene").style.display = "block";
         });
 
     }, false);
@@ -31,7 +36,7 @@ var hideHoverArea = function(targetHoverArea) {
 //Play walking sound.
 var walkSound = function(volume) {
     //    new Audio('../sounds/step.mp3').play();
-    STEP = new Audio('../sounds/step.mp3');
+    STEP = new Audio('../sounds/steps.mp3');
     STEP.volume = volume;
     STEP.loop = false;
     STEP.play();
@@ -40,7 +45,7 @@ var walkSound = function(volume) {
 var ambientSounds = function() {
     var soundElements = document.querySelectorAll(".ambientSound");
 
-    soundElements.forEach(function(element){
+    soundElements.forEach(function(element) {
         element.components.sound.playSound();
     })
 }
@@ -122,7 +127,6 @@ AFRAME.registerComponent('beacon-controls', {
 
     getVelocity: function() {
         if (!this.active) return;
-
         var data = this.data,
             offset = this.offset,
             position = this.position,
@@ -130,7 +134,6 @@ AFRAME.registerComponent('beacon-controls', {
             beacon = this.beacon;
 
         this.sync();
-        WALKING = true;
         //Play walking audio every other position change.
         // this.currentVal = parseInt(position.distanceTo(targetPosition));
 
@@ -140,7 +143,10 @@ AFRAME.registerComponent('beacon-controls', {
         // }
 
         if (position.distanceTo(targetPosition) < EPS) {
+            //Walking sound
             WALKING = false;
+            STEP.pause();
+
             this.beacon = null;
             this.el.emit('navigation-end', { beacon: beacon });
             hideHoverArea(beacon.attributes.beacon.value);
@@ -214,6 +220,7 @@ AFRAME.registerComponent('beacon', {
         });
 
         this.el.addEventListener('click', function() {
+            WALKING = true;
             speak("You're walking towards the Beacon " + descriptionData);
         });
 
