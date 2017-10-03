@@ -24,11 +24,6 @@
     <meta name="description" content="GRAVR Accessibility Demo">
     <meta name="apple-mobile-web-app-capable" />
     <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
-    <!-- Bootstrap Bootswatch theme - other themes available here: https://bootswatch.com -->
-    <link rel="stylesheet" href="https://cdn.rawgit.com/thomaspark/bootswatch/gh-pages/slate/bootstrap.min.css" />
-    <!-- Bootstrap Dependencies -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
     <script src="js/howler.min.js"></script>
     <!--build:css css/styles.min.css-->
@@ -37,11 +32,33 @@
     <!--build:js js/main.min.js -->
     <script src="js/script.js"></script>
     <!-- endbuild -->
-    <script src="https://cdn.rawgit.com/gladeye/aframe-preloader-component/1.0.0/dist/aframe-preloader-component.min.js"></script>
 </head>
 
 <body>
-    <a-scene preloader="clickToClose: true;">
+    <div id="background-landing">
+        <div id="landing-page">
+            <section>
+                <h1>Welcome to the WebVR Accessibility Demo</h1>
+                <h2>This experience takes place in a small town square</h2>
+                <p>Listed here are the objectives in this demo:</p>
+                <ul>
+                    <li>Orient yourself in the scene</li>
+                    <li>There are four beacons in every corner of the town square, you can navigate to them by pressing the trigger button on the VR headset.</li>
+                    <li>Find four points of interest:
+                        <ul>
+                            <li>Fountain</li>
+                            <li>Farmers Market</li>
+                            <li>People sitting in a outdoors restaurant</li>
+                            <li>Person feeding pigeons</li>
+                        </ul>
+                    </li>
+                </ul>
+                <div id="progressBar"><div id="progress"></div></div>
+                <button class="enter-vr">Get Started</button>
+            </section>
+        </div>
+    </div>
+    <a-scene style="display:none;">
         <a-assets>
             <a-mixin id="grid" geometry="primitive:plane; width: 25; height: 25" rotation="-90 0 0" material="src:assets/grid.png; repeat:25 25"></a-mixin>
             <a-mixin id="street_tile" material="color:#867562"></a-mixin>
@@ -189,6 +206,14 @@
         <a-entity gravr-avatar></a-entity>
     </a-scene>
     <script type="text/javascript">
+
+
+
+    document.querySelector(".enter-vr").addEventListener('click', function(){
+      document.querySelector("#background-landing").remove();
+      document.querySelector("a-scene").style.display = "block";
+    });
+
     //PLAY WALKING AUDIO ON CLICK
     var body = document.querySelector("body");
 

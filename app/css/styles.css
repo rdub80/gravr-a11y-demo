@@ -8,8 +8,12 @@ h1 {
   font-size: 24px;
   margin: 0px; }
 
-p {
-  font-size: 14px; }
+h2 {
+  font-size: 18px;
+  margin: 0px; }
+
+p, ul, li{
+  font-size: 12px; }
 
 a {
   color: #000;
