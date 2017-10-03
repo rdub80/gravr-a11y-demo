@@ -5,7 +5,7 @@ var WALKING, STEP;
 // ENABLE AUDIO ON LOAD. SATISFY MOBILE IOS & ANDROID BROWSER
 window.addEventListener('load',
         function() {
-        var launchVr = document.querySelector("#preloader-modal button");
+        var launchVr = document.querySelector("#enterBtn");
         
         launchVr.addEventListener("click", function() {
             console.log("Entering Experience");

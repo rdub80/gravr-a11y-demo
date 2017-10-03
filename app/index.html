@@ -35,9 +35,11 @@
 </head>
 
 <body>
-    <div id="background-landing">
-        <div id="landing-page">
-            <section>
+
+    <!-- Loading Progress -->
+    <div id="loader" class="loadscreen-overlay" data-total="0" data-current="0">
+        <div class="overlay-content">
+            <section class="column">
                 <h1>Welcome to the WebVR Accessibility Demo</h1>
                 <h2>This experience takes place in a small town square</h2>
                 <p>Listed here are the objectives in this demo:</p>
@@ -53,13 +55,25 @@
                         </ul>
                     </li>
                 </ul>
-                <div id="progressBar"><div id="progress"></div></div>
-                <button class="enter-vr">Get Started</button>
+                <p><span id="progressPercent">Loading Content</span></p>
+                <div id="progressBar">
+                    <div id="progress"></div>
+                </div>
+                <button id="enterBtn">Get Started</button>
             </section>
         </div>
     </div>
+
+
     <a-scene style="display:none;">
         <a-assets>
+            <audio id="cafeSnd" src="sounds/cafe.mp3" preload="auto"></audio>
+            <audio id="fountainSnd" src="sounds/fountain.mp3" preload="auto"></audio>
+            <audio id="marketSnd" src="sounds/market.mp3" preload="auto"></audio>
+            <audio id="pigeonSnd" src="sounds/pigeons.mp3" preload="auto"></audio>
+            <audio id="stepSound" src="sounds/steps.mp3" preload="auto"></audio>
+            <audio id="uiSound" src="sounds/ui.mp3" preload="auto"></audio>
+
             <a-mixin id="grid" geometry="primitive:plane; width: 25; height: 25" rotation="-90 0 0" material="src:assets/grid.png; repeat:25 25"></a-mixin>
             <a-mixin id="street_tile" material="color:#867562"></a-mixin>
         </a-assets>
@@ -174,16 +188,16 @@
             <a-cylinder id="fountain-center" height="1.6" radius="0.15" material="shader:flat; color:#6a5844" position="0 0.8 0">
             </a-cylinder>
         </a-entity>
-        <a-entity class="ambientSound" id="fountainwater" geometry="primitive:box; width:0.25; height:0.25; depth:0.25;" material="color:red;" position="-2.25 1.75 0.75" sound="src: url(sounds/fountain.mp3); loop:true; volume:2;" poi="description:A small fountain in the center of the piazza">
+        <a-entity class="ambientSound" id="fountainwater" geometry="primitive:box; width:0.25; height:0.25; depth:0.25;" material="color:red;" position="-2.25 1.75 0.75" sound="src: #fountainSnd; loop:true; volume:2;" poi="description:A small fountain in the center of the piazza">
             <a-entity lookat-cam text="value: A small fountain in the center of the piazza; align:center" scale="10 10 10" position="0 1 0"></a-entity>
         </a-entity>
-        <a-entity class="ambientSound" id="restaurant" geometry="primitive:box; width:7; height:1; depth:1;" material="color:red;" position="-9 0.5 -12" sound="src: url(sounds/cafe.mp3); loop:true; volume:2;" poi="description:People sitting in an outdoor restaurant">
+        <a-entity class="ambientSound" id="restaurant" geometry="primitive:box; width:7; height:1; depth:1;" material="color:red;" position="-9 0.5 -12" sound="src: #cafeSnd; loop:true; volume:2;" poi="description:People sitting in an outdoor restaurant">
             <a-entity lookat-cam text="value: People sitting in an outdoor restaurant; align:center" scale="5 5 5" position="0 2 0"></a-entity>
         </a-entity>
-        <a-entity class="ambientSound" id="pigeons" geometry="primitive:box; width:1; height:1; depth:1;" material="color:red;" position="-9 0.5 11" sound="src: url(sounds/pigeons.mp3); loop:true; volume:3;" poi="description:A person feeding pigeons">
+        <a-entity class="ambientSound" id="pigeons" geometry="primitive:box; width:1; height:1; depth:1;" material="color:red;" position="-9 0.5 11" sound="src: #pigeonSnd; loop:true; volume:3;" poi="description:A person feeding pigeons">
             <a-entity lookat-cam text="value: Person feeding pigeons; align:center" scale="5 5 5" position="0 2 0"></a-entity>
         </a-entity>
-        <a-entity class="ambientSound" id="market" geometry="primitive:box; width:5; height:1; depth:1;" material="color:red;" position="0 0.5 20" sound="src: url(sounds/market.mp3); loop:true; volume:2;" poi="description:A vegetable stand at farmers market">
+        <a-entity class="ambientSound" id="market" geometry="primitive:box; width:5; height:1; depth:1;" material="color:red;" position="0 0.5 20" sound="src: #marketSnd; loop:true; volume:2;" poi="description:A vegetable stand at farmers market">
             <a-entity lookat-cam text="value: A vegetable stand at farmers market; align:center" scale="5 5 5" position="0 2 0"></a-entity>
         </a-entity>
         <!-- Grid -->
@@ -205,30 +219,146 @@
         <a-entity orientation="pitch: -0.7;"></a-entity>
         <a-entity gravr-avatar></a-entity>
     </a-scene>
-    <script type="text/javascript">
+<script type="text/javascript">
 
-    document.querySelector(".enter-vr").addEventListener('click', function(){
-        document.querySelector("#background-landing").remove();
-        document.querySelector("a-scene").style.display = "block";
-        speak("You are now standing in the virtual town square ");
-    });
+//PLAY WALKING AUDIO ON CLICK
+var body = document.querySelector("body");
 
-    //PLAY WALKING AUDIO ON CLICK
-    var body = document.querySelector("body");
+body.addEventListener("click", function(evt) {
+    if (evt.isTrusted) {
+        window.setInterval(function() {
+            if (WALKING) {
+                walkSound(.5);
+            }
+            else if(!WALKING && STEP && STEP.isPlaying){
+              STEP.pause();
+            }
+        }, 1000);
+    }
+});
 
-    body.addEventListener("click", function(evt) {
-        if (evt.isTrusted) {
-            window.setInterval(function() {
-                if (WALKING) {
-                    walkSound(.5);
-                }
-                else if(!WALKING && STEP && STEP.isPlaying){
-                  STEP.pause();
-                }
-            }, 1000);
-        }
-    })
-    </script>
+// LOADING START -------
+
+var scene = document.querySelector('a-scene');
+var images = document.querySelectorAll("img");
+var audiofiles = document.querySelectorAll("audio");
+var manageAssets = document.querySelector("a-assets");
+var loader = document.querySelector("#loader");
+var total = images.length + audiofiles.length;
+
+loader.setAttribute("data-total", total);
+loader.style.display = "inline";
+
+manageAssets.addEventListener("loaded", loadingFinished);
+
+if (images) {
+  for (var i = 0; i < images.length; i++) {
+    images[i].addEventListener("load", updateProgressBar);
+  }
+}
+
+if (audiofiles) {
+  for (var i = 0; i < audiofiles.length; i++) {
+    audiofiles[i].addEventListener("loadeddata", updateProgressBar);
+  }
+}
+
+function updateProgressBar() {
+  var loader = document.querySelector("#loader");
+
+  if (loader) {
+    var total = parseInt(loader.getAttribute("data-total"));
+    var current = parseInt(loader.getAttribute("data-current"));
+    current = current + 1;
+    loader.setAttribute("data-current", current);
+
+    var progressPercent = document.querySelector("#progressPercent");
+    if (progressPercent) {
+        progressPercent.innerText = Math.round(current / total * 100) + "%";
+        progressPercent.style.color = "#000";
+    }
+
+    var progress = document.querySelector("#progress");
+    if (progress) {
+      progress.style.width = parseInt(Math.round(current / total * 100)) + "px";
+    }
+  }
+}
+
+function loadingFinished() {
+  var progressPercent = document.querySelector("#progressPercent");
+  var progressBar = document.querySelector("#progressBar");
+  var enterVRBtn = document.querySelector("#enterBtn");
+
+  if (progressPercent) {
+    progressPercent.style.display = "none";
+  }
+  if (progressBar) {
+    progressBar.style.display = "none";
+  }
+  if(enterVRBtn){
+    enterVRBtn.style.display = "inline-block";
+  }
+}
+
+function removeLandingScreen() {
+  var loader = document.querySelector("#loader");
+  var scene = document.querySelector("a-scene");
+
+  if (loader) {
+    loader.parentNode.removeChild(loader);
+    scene.style.display = "block";
+    
+    // trigger synth to make it available on mobile vr hover
+    speak("You are now standing in the virtual town square ");
+
+    setPixelRatio();
+//    playBackgroundAudio();
+  }else{
+    setPixelRatio();
+//    playBackgroundAudio();
+  }
+}
+
+function setPixelRatio() {
+  scene.addEventListener('enter-vr', function () {
+    scene.renderer.setPixelRatio(1);
+  });   
+}
+
+function playBackgroundAudio() {
+  var music = document.querySelector('a-entity[sound]');
+  music.components.sound.playSound();  
+}
+
+/* this checks is the browser is compatible with threeJS (rendering webGL) - not sure if needed
+// If there's no renderer, this browser is not compatible
+window.onload = function () {
+    var scene = document.querySelector('a-scene');
+    if (!scene.renderer) {
+        browserNotCompatible(true);
+    };
+};*/
+
+
+if (scene.hasLoaded) {
+  readyForVR();
+} else {
+  scene.addEventListener('loaded', readyForVR);
+}
+
+function readyForVR () {
+  var enterBtn = document.querySelector("#enterBtn");
+  if (enterBtn) {
+    enterBtn.addEventListener("click", removeLandingScreen);
+  }    
+}
+
+
+// LOADING END -------
+
+</script>
+
 </body>
 
 </html>

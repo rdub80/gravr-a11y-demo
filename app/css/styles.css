@@ -12,8 +12,16 @@ h2 {
   font-size: 18px;
   margin: 0px; }
 
-p, ul, li{
+p, ul, li {
   font-size: 12px; }
+
+ul {
+  text-align: left;
+  margin: 10px 20%;
+  padding: 0; }
+  ul ul {
+    margin: 10px;
+    padding: 0; }
 
 a {
   color: #000;
