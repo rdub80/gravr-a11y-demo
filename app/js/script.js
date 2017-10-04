@@ -350,7 +350,7 @@ AFRAME.registerComponent('orientation', {
         var data = this.data;
         var _this = this;
         //    var description = el.getAttribute("desc");
-
+        _this.hide();
         //single camera
         this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
         if (!this.cameraEl) {
@@ -372,13 +372,13 @@ AFRAME.registerComponent('orientation', {
                 }
             }
         });
-        //  adding north
-        var north = document.createElement("a-entity");
-        north.setAttribute('geometry', `primitive: ring; radiusInner:0.95; radiusOuter:1;`);
-        north.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.75;`);
-        north.setAttribute('rotation', `-90 0 0`);
-        north.setAttribute('position', `0 0.46 0`);
-        this.el.appendChild(north);
+        //  adding ring
+        var ring = document.createElement("a-entity");
+        ring.setAttribute('geometry', `primitive: ring; radiusInner:0.95; radiusOuter:1;`);
+        ring.setAttribute('material', `shader: flat; side:front; color:white; opacity:0.75;`);
+        ring.setAttribute('rotation', `-90 0 0`);
+        ring.setAttribute('position', `0 0.46 0`);
+        this.el.appendChild(ring);
 
         //  adding north
         var north = document.createElement("a-entity");
