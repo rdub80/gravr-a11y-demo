@@ -6,6 +6,7 @@ var WALKING, STEP;
 //Enable Audio. SATISFY MOBILE IOS & ANDROID BROWSER
 //Remove Landing page.
 window.addEventListener('load',
+
     function() {
         var launchVr = document.querySelector("#enter-vr");
 
@@ -13,8 +14,6 @@ window.addEventListener('load',
             console.log("Entering Experience");
             ambientSounds();
             speak("You are now standing in the virtual town square ");
-            document.querySelector("#background-landing").remove();
-            document.querySelector("a-scene").style.display = "block";
         });
 
     }, false);
@@ -134,13 +133,6 @@ AFRAME.registerComponent('beacon-controls', {
             beacon = this.beacon;
 
         this.sync();
-        //Play walking audio every other position change.
-        // this.currentVal = parseInt(position.distanceTo(targetPosition));
-
-        // if (this.currentVal !== this.prevVal) {
-        //     WALKING = true;
-        //     this.prevVal = this.currentVal;
-        // }
 
         if (position.distanceTo(targetPosition) < EPS) {
             //Walking sound
