@@ -59,6 +59,7 @@ var speak = function(words) {
     utterThis.name = 'Google US English';
     utterThis.pitch = 1;
     utterThis.rate = 1;
+    utterThis.volume = 0.5;
 
     synth.speak(utterThis);
 }
