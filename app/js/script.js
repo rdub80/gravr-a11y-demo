@@ -54,8 +54,9 @@ var speak = function(words) {
 
     var utterThis = new SpeechSynthesisUtterance(words);
     var voices = synth.getVoices();
-    utterThis.voice = voices[48];
+    //utterThis.voice = voices[0];
     utterThis.lang = 'en-US';
+    utterThis.name = 'Google US English';
     utterThis.pitch = 1;
     utterThis.rate = 1;
 
