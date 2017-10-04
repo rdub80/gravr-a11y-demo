@@ -183,7 +183,7 @@
             <a-cylinder id="fountain-center" height="1.6" radius="0.15" material="shader:flat; color:#6a5844" position="0 0.8 0">
             </a-cylinder>
         </a-entity>
-        <a-entity class="ambientSound" id="fountainwater" geometry="primitive:box; width:2; height:2; depth:2;" material="color:blue; opacity:1; wireframe:true" position="-2.25 1 0.75" sound="src: url(./sounds/fountain.mp3); loop:true; volume:2;" poi="description:A small fountain in the center of the piazza">
+        <a-entity class="ambientSound" id="fountainwater" geometry="primitive:box; width:2; height:2; depth;" material="color:blue; opacity:1; wireframe:true" position="-2.25 1 0.75" sound="src: url(./sounds/fountain.mp3); loop:true; volume:2;" poi="description:A small fountain in the center of the piazza">
             <a-entity lookat-cam text="value: A small fountain; align:center" scale="10 10 10" position="0 1 0"></a-entity>
         </a-entity>
         <a-entity id="cafe"
@@ -229,6 +229,10 @@
         <a-entity orientation="pitch: -0.7;"></a-entity>
         <a-entity gravr-avatar></a-entity>
     </a-scene>
+
+    <!-- clear screenreader -->
+    <div id="a11yblur" tabindex="-1"></div>
+    
     <script type="text/javascript">
     // LOADING START -------
 
@@ -335,10 +339,14 @@
     function readyForVR() {
         var enterBtn = document.querySelector("#enter-vr");
         if (enterBtn) {
+            clearA11yMethod();
             enterBtn.addEventListener("click", removeLandingScreen);
         }
     }
 
+    clearA11yMethod = function getFocus() {           
+        document.getElementById("a11yblur").focus();
+    };
 
     // LOADING END -------
     </script>
