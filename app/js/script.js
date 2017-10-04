@@ -35,7 +35,7 @@ var hideHoverArea = function(targetHoverArea) {
 //Play walking sound.
 var walkSound = function(volume) {
     //    new Audio('../sounds/step.mp3').play();
-    STEP = new Audio('../sounds/steps.mp3');
+    STEP = new Audio('https://cdn.rawgit.com/rdub80/gravr-a11y-demo/cad67274/app/sounds/steps.mp3');
     STEP.volume = volume;
     STEP.loop = false;
     STEP.play();
