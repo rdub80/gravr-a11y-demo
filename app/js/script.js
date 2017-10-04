@@ -53,7 +53,7 @@ var speak = function(words) {
     silence();
 
     var utterThis = new SpeechSynthesisUtterance(words);
-    var voices = synth.getVoices();
+    //var voices = synth.getVoices();
     //utterThis.voice = voices[0];
     utterThis.lang = 'en-US';
     utterThis.name = 'Google US English';
