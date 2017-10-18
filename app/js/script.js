@@ -705,15 +705,67 @@ AFRAME.registerComponent('a11y', {
         }
         if(data.motion){
             //for motion sickness vestibular disorder
+
+            //creating gradient
+            var canvas = this.canvas = document.createElement('canvas');
+            canvas.id = "gradient";
+            canvas.width = 32;
+            canvas.height = 32;
+            canvas.style.display = "none";
+            var ctx = this.ctx = canvas.getContext("2d");
+            var grd = ctx.createLinearGradient(0, 0, 0, 32);
+            grd.addColorStop(0, "rgba(0,0,0,0)");
+            grd.addColorStop(0.65, "rgba(0,0,0,1)");
+            ctx.fillStyle = grd;
+            ctx.fillRect(0 , 0, 32, 32);
+            document.body.appendChild(canvas);
+
             var cylinder = document.createElement("a-entity");
             cylinder.setAttribute('geometry', `primitive: cylinder; radius:0.25; height:0.5; segmentsRadial:64; openEnded:true`);
-            cylinder.setAttribute('material', `shader:flat; side:back; color:#fff; src:url(/assets/shade.png); transparent:true;`);
+            cylinder.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:back;`);
             cylinder.setAttribute('rotation', `-90 0 0`);
             cylinder.setAttribute('position', `0 0 -0.25`);
             this.el.appendChild(cylinder);
 
-            //add speed shutters
+            //add speed shutters triggered by function 'blink' & 'unblink'
+            var lid = document.createElement("a-entity");
+            lid.setAttribute('geometry', `primitive: sphere; radius:0.1;  phiStart:90; phiLength:180;`);
+            lid.setAttribute('material', `shader: flat; color:#000; side:back;`);
+            lid.setAttribute('rotation', `-90 0 -90`);
+            lid.setAttribute('position', `0 0 0`);
+            lid.setAttribute('id', `eyelids`);
+            this.el.appendChild(lid);
+            var lidAniClose1 = document.createElement("a-animation");
+            lidAniClose1.setAttribute('attribute', 'geometry.phiStart');
+            lidAniClose1.setAttribute('begin', 'blink');
+            lidAniClose1.setAttribute('from', '90');
+            lidAniClose1.setAttribute('to', '0');
+            lidAniClose1.setAttribute('dur', '200');
+            lid.appendChild(lidAniClose1);
+            var lidAniClose2 = document.createElement("a-animation");
+            lidAniClose2.setAttribute('attribute', 'geometry.phiLength');
+            lidAniClose2.setAttribute('begin', 'blink');
+            lidAniClose2.setAttribute('from', '180');
+            lidAniClose2.setAttribute('to', '360');
+            lidAniClose2.setAttribute('dur', '200');
+            lid.appendChild(lidAniClose2);
+            var lidAniOpen1 = document.createElement("a-animation");
+            lidAniOpen1.setAttribute('attribute', 'geometry.phiStart');
+            lidAniOpen1.setAttribute('begin', 'unblink');
+            lidAniOpen1.setAttribute('from', '0');
+            lidAniOpen1.setAttribute('to', '90');
+            lidAniOpen1.setAttribute('dur', '200');
+            lid.appendChild(lidAniOpen1);
+            var lidAniopen2 = document.createElement("a-animation");
+            lidAniopen2.setAttribute('attribute', 'geometry.phiLength');
+            lidAniopen2.setAttribute('begin', 'unblink');
+            lidAniopen2.setAttribute('from', '360');
+            lidAniopen2.setAttribute('to', '180');
+            lidAniopen2.setAttribute('dur', '200');
+            lid.appendChild(lidAniopen2);
+
             //add metatag
+
         }
         if(data.mobility){
             //add navigation motion and selectability
@@ -973,6 +1025,35 @@ AFRAME.registerShader('gradient', {
 });
 
 */
+
+
+// AFRAME.registerComponent('gradient', {
+//     schema: {
+//         color: {
+//             default: 'rgba(0,0,0,1)'
+//         }
+//     },
+//     init: function() {
+//         var _this = this;
+//         var data = this.data;
+
+//         var canvas = this.canvas = document.createElement('canvas');
+//         canvas.id = "gradient";
+//         canvas.width = 128;
+//         canvas.height = 128;
+//         canvas.style.display = "none";
+//         var ctx = this.ctx = canvas.getContext("2d");
+//         var grd = ctx.createLinearGradient(0, 0, 0, 128);
+//         grd.addColorStop(0, "rgba(0,0,0,0)");
+//         grd.addColorStop(1, "rgba(0,0,0,1)");
+
+//         ctx.fillStyle = grd;
+//         ctx.fillRect(0 , 0, 128, 128);
+//         document.body.appendChild(canvas);
+//         this.el.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
+
+//     }
+// });
 
 
 // var defaultCameraUserHeight; 
