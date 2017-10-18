@@ -2,6 +2,25 @@ var synth = window.speechSynthesis;
 var EPS = 0.1;
 var WALKING, STEP;
 
+// HELPER FUNCTIONS -------
+
+// Converts from degrees to radians.
+var degreesToradians = function(degrees) {
+  return degrees * Math.PI / 180;
+};
+ 
+// Converts from radians to degrees.
+var radiansToDegrees = function(radians) {
+  return radians * 180 / Math.PI;
+};
+
+// Rounding number to decimals
+var roundNumber = function(number, decimals) {
+  decimals = decimals || 5;
+  return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+};
+
+
 //ON LOAD
 //Enable Audio. SATISFY MOBILE IOS & ANDROID BROWSER
 //Remove Landing page.
@@ -113,13 +132,12 @@ AFRAME.registerComponent('beacon-controls', {
         el.emit('navigation-start', { beacon: beacon });
 
 
-        //currently UNUSED while animating beacon-controls.
-        // if (this.data.mode === 'teleport') {
-        //     this.sync();
-        //     this.el.setAttribute('position', this.targetPosition);
-        //     this.beacon = null;
-        //     el.emit('navigation-end', { beacon: beacon });
-        // }
+        if (this.data.mode === 'teleport') {
+            this.sync();
+            this.el.setAttribute('position', this.targetPosition);
+            this.beacon = null;
+            el.emit('navigation-end', { beacon: beacon });
+        }
     },
 
     isVelocityActive: function() {
@@ -581,95 +599,380 @@ AFRAME.registerComponent('track-gaze', {
         var _this = this;
         var el = this.el;
 
-        this.cameraEl = document.querySelector('a-entity[camera]');
-        this.panel = document.querySelector('a-entity[id="panel"]');
+        var lastPos = this.lastPos;
+        var newPos = this.newPos;
+        var timer = this.timer;
+        var delta = this.delta;
 
-        this.yaxis = new THREE.Vector3(0, 1, 0);
-        this.zaxis = new THREE.Vector3(0, 0, 1);
-        this.pivot = new THREE.Object3D();
-        //      this.panel.object3D.position.set(0, this.cameraEl.object3D.getWorldPosition().y, data.dist);
-        this.panel.object3D.position.set(0, 0, data.dist);
-        el.sceneEl.object3D.add(this.pivot);
-        this.pivot.add(this.panel.object3D);
+        var yawText = document.createElement("a-text");
+        yawText.setAttribute('position', `0 0.1 ${data.dist}`);
+        yawText.setAttribute('value', `yaw Deg (rotation on X): 0`);
+        yawText.setAttribute('align', `left`);
+        yawText.setAttribute('color', `yellow`);
+        yawText.setAttribute('scale', `0.35 0.35 0.35`);
+        this.el.appendChild(yawText);
+        this.yawText = yawText;
 
-        //    this.panel.setAttribute("position", "0 " + this.cameraEl.object3D.getWorldPosition().y + " " + data.dist);
+        var pitchText = document.createElement("a-text");
+        pitchText.setAttribute('position', `0 0.2 ${data.dist}`);
+        pitchText.setAttribute('rotation', `0 0 0`);
+        pitchText.setAttribute('value', `pitch Deg (rotation on Y): 0`);
+        pitchText.setAttribute('align', `left`);
+        pitchText.setAttribute('color', `yellow`);
+        pitchText.setAttribute('scale', `0.35 0.35 0.35`);
+        this.el.appendChild(pitchText);
+        this.pitchText = pitchText;
 
-        this.cameraEl.addEventListener('componentchanged', function(evt) {
+        var rollText = document.createElement("a-text");
+        rollText.setAttribute('position', `0 0.3 ${data.dist}`);
+        rollText.setAttribute('rotation', `0 0 0`);
+        rollText.setAttribute('value', `roll Deg (rotation on Z): 0`);
+        rollText.setAttribute('align', `left`);
+        rollText.setAttribute('color', `yellow`);
+        rollText.setAttribute('scale', `0.35 0.35 0.35`);
+        this.el.appendChild(rollText);
+        this.rollText = rollText;
+
+        //this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
+
+        this.el.addEventListener('componentchanged', function(evt) {
             if (evt.detail.name === 'rotation') {
-                _this.posTrack(evt.detail.newData)
+                var _Pos = evt.detail.target.object3D.rotation;
+                //_this.checkSpeed(_Pos.x);
+                _this.posTrack(_Pos);
+                //console.log("_Pos.x " + _Pos.x);
             }
         });
-        setTimeout(function() { _this.updatePos(); }, 10000);
-
     },
-    posTrack: function(newData) {
-
-        var horizontal = roundNumber(newData.x, 2);
-        var vertical = roundNumber(newData.y, 2);
-        document.querySelector('a-text[id="horizontal"]').setAttribute("value", horizontal);
-        document.querySelector('a-text[id="vertical"]').setAttribute("value", vertical);
-        /**/
-
-        var rotateY = this.cameraEl.object3D.getWorldRotation().y;
-        var rotateX = this.cameraEl.object3D.getWorldRotation().x;
-        console.log("rotateY: " + radiansToDegrees(rotateY) + " - rotateX: " + radiansToDegrees(rotateX));
-
-        // var panelWdithLeft = 0;
-        // var panelWdithRight = 0;
-
-        var panelWdith = 0;
-        var panelHeight = 0;
-        var panelDistance = this.data.dist * 2;
-
-        // x; tan( Rotation Deg ) = length (x) /distance (z)
-        // Tangent = opposite/adjacent
-
-        // if(rotateY>0){
-        //  panelWdithLeft = Math.tan(rotateY) * panelDistance;
-        // }else{
-        //  rotateY = -rotateY;
-        //  panelWdithLeft = 0;
-        //  panelWdithRight = Math.tan(rotateY) * panelDistance;
-        // }
-
-        var posRotY = -rotateY > 0 ? -rotateY : rotateY;
-        panelWdith = Math.tan(posRotY) * panelDistance;
-
-        var posRotX = -rotateX > 0 ? -rotateX : rotateX;
-        panelHeight = Math.tan(posRotX) * panelDistance;
-
-        console.log("panelWdith: " + panelWdith);
-        console.log("panelHeight: " + panelHeight);
-
-        this.panel.setAttribute("geometry", "width", panelWdith);
-        this.panel.setAttribute("geometry", "height", panelHeight);
-
+    clear: function(){
+        //this.lastPos = null; 
+        this.delta = 0; 
     },
-    setPos: function() {
-        var direction = this.zaxis.clone();
-        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
-        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
-        direction.sub(ycomponent);
-        direction.normalize();
-
-        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
-        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
-        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
-        console.log("fired updatePos");
+    checkSpeed: function(newPos){
+/*
+        this.newPos = value;
+        if ( this.lastPos != null ){ // && this.newPos < maxScroll 
+            this.delta = this.newPos - this.lastPos;
+        }
+        this.lastPos = this.newPos;
+        clearTimeout(this.timer);
+        this.timer = setTimeout(this.clear, 50);
+        console.log("delta " + this.delta);
+*/
     },
-    updatePos: function() {
-        var direction = this.zaxis.clone();
-        direction.applyQuaternion(this.cameraEl.object3D.quaternion);
-        var ycomponent = this.yaxis.clone().multiplyScalar(direction.dot(this.yaxis));
-        direction.sub(ycomponent);
-        direction.normalize();
+    posTrack: function(posData) {
+        var yaw = roundNumber(radiansToDegrees(posData.x), 2);
+        var pitch = roundNumber(radiansToDegrees(posData.y), 2);
+        var roll = roundNumber(radiansToDegrees(posData.z), 2);
+        this.yawText.setAttribute("value", "yaw Deg (rotation on X): "+yaw);
+        this.pitchText.setAttribute("value", "pitch Deg (rotation on Y): "+pitch);
+        this.rollText.setAttribute("value", "roll Deg (rotation on Z): "+roll);
 
-        this.pivot.quaternion.setFromUnitVectors(this.zaxis, direction);
-        this.pivot.position.copy(this.cameraEl.object3D.getWorldPosition());
-        this.panel.setAttribute("rotation", this.cameraEl.object3D.getWorldRotation());
-        console.log("fired updatePos");
+        // var rotateY = this.el.object3D.getWorldRotation().y;
+        // var rotateX = this.el.object3D.getWorldRotation().x;
+        // console.log("rotateY: " + radiansToDegrees(rotateY) + " - rotateX: " + radiansToDegrees(rotateX));
     },
+    tick: function() {
+    }
 });
+
+
+// a11y script comes last
+AFRAME.registerComponent('a11y', {
+    schema: {
+        hearing: { default: false }, 
+        vision: { default: false }, 
+        motion: { default: false }, 
+        mobility: { default: false }, 
+    },
+    init: function() {
+        var data = this.data;
+        var _this = this;
+        var el = this.el;
+        if(data.vision){
+            //for visually impaired
+            //add audio features
+        }
+        if(data.hearing){
+            //for people with bad hearing
+
+            var srtCaps = document.createElement("a-entity");
+            srtCaps.setAttribute('geometry', `primitive: plane; width:1; height:0.25;`);
+            srtCaps.setAttribute('material', `shader:flat; side:front; color:#000; opacity:0.5; transparent:true;`);
+            srtCaps.setAttribute('rotation', `0 0 0`);
+            srtCaps.setAttribute('position', `0 0 -1`);
+            this.el.appendChild(srtCaps);
+        }
+        if(data.motion){
+            //for motion sickness vestibular disorder
+            var cylinder = document.createElement("a-entity");
+            cylinder.setAttribute('geometry', `primitive: cylinder; radius:0.25; height:0.5; segmentsRadial:64; openEnded:true`);
+            cylinder.setAttribute('material', `shader:flat; side:back; color:#fff; src:url(/assets/shade.png); transparent:true;`);
+            cylinder.setAttribute('rotation', `-90 0 0`);
+            cylinder.setAttribute('position', `0 0 -0.25`);
+            this.el.appendChild(cylinder);
+
+            //add speed shutters
+            //add metatag
+        }
+        if(data.mobility){
+            //add navigation motion and selectability
+
+            var nav = document.createElement("a-entity");
+            nav.setAttribute('geometry', `primitive: plane; width:1; height:1;`);
+            nav.setAttribute('material', `shader:flat; side:back; color:#fff;`);
+            nav.setAttribute('rotation', `0 0 0`);
+            nav.setAttribute('scale', `5 5 5`);
+            nav.setAttribute('position', `0 0 -0.5`);
+            this.el.appendChild(nav);
+            this.nav = nav;
+
+            var move = document.createElement("a-entity");
+            move.setAttribute('geometry', `primitive: plane; width:0.06; height:0.06;`);
+            move.setAttribute('material', `shader:flat; side:back; color:#fff;`);
+            move.setAttribute('rotation', `-75 0 0`);
+            move.setAttribute('position', `0 -0.08 -0.2`);
+            nav.appendChild(move);
+            var forwardArrow = document.createElement("a-gui-icon-button");
+            forwardArrow.setAttribute('height', `0.75`);
+            forwardArrow.setAttribute('onclick', `moveForwardFunction`);
+            forwardArrow.setAttribute('icon', `chevron-up`);
+            forwardArrow.setAttribute('scale', `0.0225 0.0225 0.0225`);
+            forwardArrow.setAttribute('rotation', `0 0 0`);
+            forwardArrow.setAttribute('margin', `0 0 0`);
+            forwardArrow.setAttribute('position', `0 0.0175 0.001`);
+            forwardArrow.setAttribute('font-color', `#000`);
+            forwardArrow.setAttribute('border-color', `#f5f5f5`);  
+            forwardArrow.setAttribute('background-color', `#fff`);  
+            move.appendChild(forwardArrow);
+            var backwardArrow = document.createElement("a-gui-icon-button");
+            backwardArrow.setAttribute('height', `0.75`);
+            backwardArrow.setAttribute('onclick', `moveBackwardFunction`);
+            backwardArrow.setAttribute('icon', `chevron-down`);
+            backwardArrow.setAttribute('scale', `0.0225 0.0225 0.0225`);
+            backwardArrow.setAttribute('rotation', `0 0 0`);
+            backwardArrow.setAttribute('margin', `0 0 0`);
+            backwardArrow.setAttribute('position', `0 -0.0175 0.001`);
+            backwardArrow.setAttribute('font-color', `#000`);
+            backwardArrow.setAttribute('border-color', `#f5f5f5`);  
+            backwardArrow.setAttribute('background-color', `#fff`);  
+            move.appendChild(backwardArrow);
+            var leftArrow = document.createElement("a-gui-icon-button");
+            leftArrow.setAttribute('height', `0.75`);
+            leftArrow.setAttribute('onclick', `moveLeftFunction`);
+            leftArrow.setAttribute('icon', `chevron-left`);
+            leftArrow.setAttribute('scale', `0.0225 0.0225 0.0225`);
+            leftArrow.setAttribute('rotation', `0 0 0`);
+            leftArrow.setAttribute('margin', `0 0 0`);
+            leftArrow.setAttribute('position', `-0.0175 0 0.001`);
+            leftArrow.setAttribute('font-color', `#000`);
+            leftArrow.setAttribute('border-color', `#f5f5f5`);  
+            leftArrow.setAttribute('background-color', `#fff`);  
+            move.appendChild(leftArrow);
+            var rightArrow = document.createElement("a-gui-icon-button");
+            rightArrow.setAttribute('height', `0.75`);
+            rightArrow.setAttribute('onclick', `moveRightFunction`);
+            rightArrow.setAttribute('icon', `chevron-right`);
+            rightArrow.setAttribute('scale', `0.0225 0.0225 0.0225`);
+            rightArrow.setAttribute('rotation', `0 0 0`);
+            rightArrow.setAttribute('margin', `0 0 0`);
+            rightArrow.setAttribute('position', `0.0175 0 0.0015`);
+            rightArrow.setAttribute('font-color', `#000`);
+            rightArrow.setAttribute('border-color', `#f5f5f5`);  
+            rightArrow.setAttribute('background-color', `#fff`);  
+            move.appendChild(rightArrow);
+            var upArrow = document.createElement("a-gui-icon-button");
+            upArrow.setAttribute('height', `0.75`);
+            upArrow.setAttribute('onclick', `moveUpFunction`);
+            upArrow.setAttribute('icon', `chevron-up`);
+            upArrow.setAttribute('scale', `0.02 0.02 0.02`);
+            upArrow.setAttribute('rotation', `75 0 0`);
+            upArrow.setAttribute('margin', `0 0 0`);
+            upArrow.setAttribute('position', `-0.04 0 0.02`);
+            upArrow.setAttribute('font-color', `#000`);
+            upArrow.setAttribute('border-color', `#f5f5f5`);  
+            upArrow.setAttribute('background-color', `#fff`);  
+            move.appendChild(upArrow);
+            var downArrow = document.createElement("a-gui-icon-button");
+            downArrow.setAttribute('height', `0.75`);
+            downArrow.setAttribute('onclick', `moveDownFunction`);
+            downArrow.setAttribute('icon', `chevron-down`);
+            downArrow.setAttribute('scale', `0.02 0.02 0.02`);
+            downArrow.setAttribute('rotation', `75 0 0`);
+            downArrow.setAttribute('margin', `0 0 0`);
+            downArrow.setAttribute('position', `-0.04 0 0`);
+            downArrow.setAttribute('font-color', `#000`);
+            downArrow.setAttribute('border-color', `#f5f5f5`);  
+            downArrow.setAttribute('background-color', `#fff`);  
+            move.appendChild(downArrow);
+
+            var pitch = document.createElement("a-entity");
+            pitch.setAttribute('geometry', `primitive: plane; width:0.06; height:0.06;`);
+            pitch.setAttribute('material', `shader:flat; side:back; color:#000;`);
+            pitch.setAttribute('rotation', `-15 -75 0`);
+            pitch.setAttribute('position', `0.039 -0.085 -0.205`);
+            nav.appendChild(pitch);
+            var rightPitchTurn = document.createElement("a-gui-icon-button");
+            rightPitchTurn.setAttribute('height', `0.5`);
+            rightPitchTurn.setAttribute('onclick', `pitchRightFunction`);
+            rightPitchTurn.setAttribute('icon', `ios-redo`);
+            rightPitchTurn.setAttribute('scale', `0.0275 0.0275 0.0275`);
+            rightPitchTurn.setAttribute('rotation', `0 0 -45`);
+            rightPitchTurn.setAttribute('margin', `0 0 0`);
+            rightPitchTurn.setAttribute('position', `0.0175 0.0335 0.001`);
+            rightPitchTurn.setAttribute('font-color', `#000`);
+            rightPitchTurn.setAttribute('border-color', `#f5f5f5`);  
+            rightPitchTurn.setAttribute('background-color', `#fff`);  
+            pitch.appendChild(rightPitchTurn);
+            var leftPitchTurn = document.createElement("a-gui-icon-button");
+            leftPitchTurn.setAttribute('height', `0.5`);
+            leftPitchTurn.setAttribute('onclick', `pitchLeftFunction`);
+            leftPitchTurn.setAttribute('icon', `ios-undo`);
+            leftPitchTurn.setAttribute('scale', `0.0275 0.0275 0.0275`);
+            leftPitchTurn.setAttribute('rotation', `0 0 45`);
+            leftPitchTurn.setAttribute('margin', `0 0 0`);
+            leftPitchTurn.setAttribute('position', `-0.0175 0.0335 0.001`);
+            leftPitchTurn.setAttribute('font-color', `#000`);
+            leftPitchTurn.setAttribute('border-color', `#f0f0f0`);  
+            leftPitchTurn.setAttribute('background-color', `#fff`);  
+            pitch.appendChild(leftPitchTurn);
+            var rightpitchRing = document.createElement("a-ring");
+            rightpitchRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:0; thetaLength:90;')
+            rightpitchRing.setAttribute('material', 'shader:flat; side:front; color:#fff; opacity:0.5;');
+            rightpitchRing.setAttribute('rotation', '0 0 0');
+            rightpitchRing.setAttribute('position', '0 0 0');
+            pitch.appendChild(rightpitchRing);
+            var leftpitchRing = document.createElement("a-ring");
+            leftpitchRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:90; thetaLength:90;')
+            leftpitchRing.setAttribute('material', 'shader:flat; side:front; color:#fff; opacity:0.5;');
+            leftpitchRing.setAttribute('rotation', '0 0 0');
+            leftpitchRing.setAttribute('position', '0 0 0');
+            pitch.appendChild(leftpitchRing);
+
+            var roll = document.createElement("a-entity");
+            roll.setAttribute('geometry', `primitive: plane; width:0.06; height:0.06;`);
+            roll.setAttribute('material', `shader:flat; side:back; color:#000;`);
+            roll.setAttribute('rotation', `0 0 0`);
+            roll.setAttribute('position', `0 -0.085 -0.235`);
+            nav.appendChild(roll);
+            var rightRollTurn = document.createElement("a-gui-icon-button");
+            rightRollTurn.setAttribute('height', `0.5`);
+            rightRollTurn.setAttribute('onclick', `rollRightFunction`);
+            rightRollTurn.setAttribute('icon', `ios-redo`);
+            rightRollTurn.setAttribute('scale', `0.0275 0.0275 0.0275`);
+            rightRollTurn.setAttribute('rotation', `0 0 -45`);
+            rightRollTurn.setAttribute('margin', `0 0 0`);
+            rightRollTurn.setAttribute('position', `0.0175 0.0335 0.001`);
+            rightRollTurn.setAttribute('font-color', `#000`);
+            rightRollTurn.setAttribute('border-color', `#f5f5f5`);  
+            rightRollTurn.setAttribute('background-color', `#fff`);  
+            roll.appendChild(rightRollTurn);
+            var leftRollTurn = document.createElement("a-gui-icon-button");
+            leftRollTurn.setAttribute('height', `0.5`);
+            leftRollTurn.setAttribute('onclick', `rollLeftFunction`);
+            leftRollTurn.setAttribute('icon', `ios-undo`);
+            leftRollTurn.setAttribute('scale', `0.0275 0.0275 0.0275`);
+            leftRollTurn.setAttribute('rotation', `0 0 45`);
+            leftRollTurn.setAttribute('margin', `0 0 0`);
+            leftRollTurn.setAttribute('position', `-0.0175 0.0335 0.001`);
+            leftRollTurn.setAttribute('font-color', `#000`);
+            leftRollTurn.setAttribute('border-color', `#f0f0f0`);  
+            leftRollTurn.setAttribute('background-color', `#fff`);  
+            roll.appendChild(leftRollTurn);
+            var rightRollRing = document.createElement("a-ring");
+            rightRollRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:0; thetaLength:90;')
+            rightRollRing.setAttribute('material', 'shader:flat; side:front; color:#fff; opacity:0.5;');
+            rightRollRing.setAttribute('rotation', '0 0 0');
+            rightRollRing.setAttribute('position', '0 0 0');
+            roll.appendChild(rightRollRing);
+            var leftRollRing = document.createElement("a-ring");
+            leftRollRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:90; thetaLength:90;')
+            leftRollRing.setAttribute('material', 'shader:flat; side:front; color:#fff; opacity:0.5;');
+            leftRollRing.setAttribute('rotation', '0 0 0');
+            leftRollRing.setAttribute('position', '0 0 0');
+            roll.appendChild(leftRollRing);
+
+            var yaw = document.createElement("a-entity");
+            yaw.setAttribute('geometry', `primitive: plane; width:0.06; height:0.06;`);
+            yaw.setAttribute('material', `shader:flat; side:back; color:#000;`);
+            yaw.setAttribute('rotation', `-105 180 0`);
+            yaw.setAttribute('position', `0 -0.085 -0.185`);
+            nav.appendChild(yaw);
+            var rightYawTurn = document.createElement("a-gui-icon-button");
+            rightYawTurn.setAttribute('height', `0.5`);
+            rightYawTurn.setAttribute('onclick', `yawRightFunction`);
+            rightYawTurn.setAttribute('icon', `ios-redo`);
+            rightYawTurn.setAttribute('scale', `0.0275 0.0275 0.0275`);
+            rightYawTurn.setAttribute('rotation', `0 0 -45`);
+            rightYawTurn.setAttribute('margin', `0 0 0`);
+            rightYawTurn.setAttribute('position', `0.0175 0.0335 0.001`);
+            rightYawTurn.setAttribute('font-color', `#000`);
+            rightYawTurn.setAttribute('border-color', `#f5f5f5`);  
+            rightYawTurn.setAttribute('background-color', `#fff`);  
+            yaw.appendChild(rightYawTurn);
+            var leftYawTurn = document.createElement("a-gui-icon-button");
+            leftYawTurn.setAttribute('height', `0.5`);
+            leftYawTurn.setAttribute('onclick', `yawLeftFunction`);
+            leftYawTurn.setAttribute('icon', `ios-undo`);
+            leftYawTurn.setAttribute('scale', `0.0275 0.0275 0.0275`);
+            leftYawTurn.setAttribute('rotation', `0 0 45`);
+            leftYawTurn.setAttribute('margin', `0 0 0`);
+            leftYawTurn.setAttribute('position', `-0.0175 0.0335 0.001`);
+            leftYawTurn.setAttribute('font-color', `#000`);
+            leftYawTurn.setAttribute('border-color', `#f0f0f0`);  
+            leftYawTurn.setAttribute('background-color', `#fff`);  
+            yaw.appendChild(leftYawTurn);
+            var rightYawRing = document.createElement("a-ring");
+            rightYawRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:0; thetaLength:90;')
+            rightYawRing.setAttribute('material', 'shader:flat; side:front; color:#fff; opacity:0.5;');
+            rightYawRing.setAttribute('rotation', '0 0 0');
+            rightYawRing.setAttribute('position', '0 0 0');
+            yaw.appendChild(rightYawRing);
+            var leftYawRing = document.createElement("a-ring");
+            leftYawRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:90; thetaLength:90;')
+            leftYawRing.setAttribute('material', 'shader:flat; side:front; color:#fff; opacity:0.5;');
+            leftYawRing.setAttribute('rotation', '0 0 0');
+            leftYawRing.setAttribute('position', '0 0 0');
+            yaw.appendChild(leftYawRing);
+        }        
+    },
+    update: function(oldData) {
+        // Do something when component's data is updated.
+    },
+    remove: function () {
+        // Do something the component or its entity is detached.
+    },
+    tick: function (time, timeDelta) {
+        // Do something on every scene tick or frame.
+    }
+});
+
+/*
+AFRAME.registerShader('gradient', {
+    schema: {
+        topColor: {type: 'vec4', default: '1.0, 0.0, 1.0, 1.0', is: 'uniform'},
+        bottomColor: {type: 'vec4', default: '1.0, 1.0, 0.0, 1.0', is: 'uniform'}
+    },
+    vertexColors: THREE.VertexColors,
+    side: THREE.DoubleSide,
+    transparent: true,
+    vertexShader: [
+        'void main() {',
+        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(0,0,0, 1.0);',
+        '}'
+    ].join('\n'),
+    fragmentShader: [
+        'uniform vec4 bottomColor;',
+        'uniform vec4 topColor;',
+        'uniform vec2 resolution;',
+
+        'void main() {',
+        '   gl_FragColor = vec4(mix(bottomColor, topColor, (gl_FragCoord.y / resolution.y)));'
+        '}'
+    ].join('\n')
+});
+
+*/
 
 
 // var defaultCameraUserHeight; 
