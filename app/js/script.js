@@ -28,11 +28,14 @@ window.addEventListener('load',
 
     function() {
         var launchVr = document.querySelector("#enter-vr");
+        var piazza = document.querySelector("#piazza");
 
         launchVr.addEventListener("click", function() {
-            console.log("Entering Experience");
-            ambientSounds();
-            speak("You are now standing in the virtual town square ");
+            if(piazza){
+                console.log("Entering Experience");
+                ambientSounds();
+                speak("You are now standing in the virtual town square ");                
+            }
         });
 
     }, false);
