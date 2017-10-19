@@ -9,10 +9,10 @@ var degreesToradians = function(degrees) {
   return degrees * Math.PI / 180;
 };
  
-// Converts from radians to degrees.
-var radiansToDegrees = function(radians) {
-  return radians * 180 / Math.PI;
-};
+// // Converts from radians to degrees.
+// var radiansToDegrees = function(radians) {
+//   return radians * 180 / Math.PI;
+// }; replaced with THREE.js helper 'radToDeg'
 
 // Rounding number to decimals
 var roundNumber = function(number, decimals) {
@@ -661,9 +661,12 @@ AFRAME.registerComponent('track-gaze', {
 */
     },
     posTrack: function(posData) {
-        var yaw = roundNumber(radiansToDegrees(posData.x), 2);
-        var pitch = roundNumber(radiansToDegrees(posData.y), 2);
-        var roll = roundNumber(radiansToDegrees(posData.z), 2);
+        var radToDeg = THREE.Math.radToDeg;
+
+
+        var yaw = roundNumber(radToDeg(posData.x), 2);
+        var pitch = roundNumber(radToDeg(posData.y), 2);
+        var roll = roundNumber(radToDeg(posData.z), 2);
         this.yawText.setAttribute("value", "yaw Deg (rotation on X): "+yaw);
         this.pitchText.setAttribute("value", "pitch Deg (rotation on Y): "+pitch);
         this.rollText.setAttribute("value", "roll Deg (rotation on Z): "+roll);
@@ -699,8 +702,8 @@ AFRAME.registerComponent('a11y', {
             var srtCaps = document.createElement("a-entity");
             srtCaps.setAttribute('geometry', `primitive: plane; width:1; height:0.25;`);
             srtCaps.setAttribute('material', `shader:flat; side:front; color:#000; opacity:0.5; transparent:true;`);
-            srtCaps.setAttribute('rotation', `0 0 0`);
-            srtCaps.setAttribute('position', `0 0 -1`);
+            srtCaps.setAttribute('rotation', `-30 0 0`);
+            srtCaps.setAttribute('position', `0 -0.5 -1`);
             this.el.appendChild(srtCaps);
         }
         if(data.motion){

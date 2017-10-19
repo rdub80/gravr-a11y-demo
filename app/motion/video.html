@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>GRAVR Accessibility Demo for People Suffering From Vestibular Disorder / Motion Sickness</title>
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="GRAVR Accessibility Demo for People Suffering From Vestibular Disorder / Motion Sickness">
+    <meta name="apple-mobile-web-app-capable" />
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
+    <script src="https://rawgit.com/rdub80/aframe-gui/master/dist/aframe-gui.min.js"></script>
+    <script src="../js/howler.min.js"></script>
+    <!--build:css css/styles.min.css-->
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- endbuild -->
+    <!--build:js js/main.min.js -->
+    <script src="../js/script.js"></script>
+    <!-- endbuild -->
+</head>
+
+<body>
+    <!-- Loading Progress -->
+    <div id="loader" class="loadscreen-overlay" data-total="0" data-current="0">
+        <div class="overlay-content">
+            <section class="column">
+                <h1>Welcome to the WebVR Accessibility Demo</h1>
+                <h2>This is an example of a fast moving 360 Video</h2>
+                <p>Here we focus on Neuro-Ocular Vestibular Dysfunction (NOVD) or the See-Sick Syndrome (SSS). We are restricting field of view in VR by applying a virtual cutout masking peripheral vision to reduce motion sickness</p>
+                <p>We also prevent fast-moving head motion by virtually closing your eyes</p> 
+                <div id="progressBar">
+                    <div id="progress"></div>
+                </div>
+                <button id="enter-vr">Get Started</button>
+            </section>
+        </div>
+    </div>
+    <a-scene style="display:none;">
+
+        <a-assets>
+            <video id="video" src="https://ucarecdn.com/fadab25d-0b3a-45f7-8ef5-85318e92a261/"
+               autoplay loop crossorigin="anonymous"></video>
+        </a-assets>    
+        <a-videosphere src="#video" rotation="0 180 0"></a-videosphere>
+
+        <a-entity camera="userHeight:1.6" universal-controls="movementControls: beacon" wasd-controls beacon-controls="mode: teleport" a11y="motion:true;">
+            <a-cursor fuse="false"></a-cursor>
+        </a-entity>
+
+    </a-scene>
+
+    <!-- clear screenreader -->
+    <div id="a11yblur"></div>
+    
+    <script type="text/javascript">
+    // LOADING START -------
+
+    var scene = document.querySelector('a-scene');
+    var images = document.querySelectorAll("img");
+    var audiofiles = document.querySelectorAll("audio");
+    var manageAssets = document.querySelector("a-assets");
+    var loader = document.querySelector("#loader");
+    var total = images.length + audiofiles.length;
+
+    loader.setAttribute("data-total", total);
+    loader.style.display = "inline";
+
+    manageAssets.addEventListener("loaded", loadingFinished);
+
+    if (images) {
+        for (var i = 0; i < images.length; i++) {
+            images[i].addEventListener("load", updateProgressBar);
+        }
+    }
+
+    if (audiofiles) {
+        for (var i = 0; i < audiofiles.length; i++) {
+            audiofiles[i].addEventListener("loadeddata", updateProgressBar);
+        }
+    }
+
+    function updateProgressBar() {
+        var loader = document.querySelector("#loader");
+
+        if (loader) {
+            var total = parseInt(loader.getAttribute("data-total"));
+            var current = parseInt(loader.getAttribute("data-current"));
+            current = current + 1;
+            loader.setAttribute("data-current", current);
+
+            var progressPercent = document.querySelector("#progressPercent");
+            if (progressPercent) {
+                progressPercent.innerText = Math.round(current / total * 100) + "%";
+                progressPercent.style.color = "#000";
+            }
+
+            var progress = document.querySelector("#progress");
+            if (progress) {
+                progress.style.width = parseInt(Math.round(current / total * 100)) + "px";
+            }
+        }
+    }
+
+    function loadingFinished() {
+        var progressPercent = document.querySelector("#progressPercent");
+        var progressBar = document.querySelector("#progressBar");
+        var enterVRBtn = document.querySelector("#enter-vr");
+
+        if (progressPercent) {
+            progressPercent.style.display = "none";
+        }
+        if (progressBar) {
+            progressBar.style.display = "none";
+        }
+        if (enterVRBtn) {
+            enterVRBtn.style.display = "inline-block";
+        }
+    }
+
+    function removeLandingScreen() {
+        var loader = document.querySelector("#loader");
+        var scene = document.querySelector("a-scene");
+
+        if (loader) {
+            loader.parentNode.removeChild(loader);
+            scene.style.display = "block";
+
+            setPixelRatio();
+            //    playBackgroundAudio();
+        } else {
+            setPixelRatio();
+            //    playBackgroundAudio();
+        }
+    }
+
+    function setPixelRatio() {
+        scene.addEventListener('enter-vr', function() {
+            scene.renderer.setPixelRatio(1);
+        });
+    }
+
+    /* this checks is the browser is compatible with threeJS (rendering webGL) - not sure if needed
+    // If there's no renderer, this browser is not compatible
+    window.onload = function () {
+        var scene = document.querySelector('a-scene');
+        if (!scene.renderer) {
+            browserNotCompatible(true);
+        };
+    };*/
+
+
+    if (scene.hasLoaded) {
+        readyForVR();
+    } else {
+        scene.addEventListener('loaded', readyForVR);
+    }
+
+    function readyForVR() {
+        var enterBtn = document.querySelector("#enter-vr");
+        if (enterBtn) {
+            clearA11yMethod();
+            enterBtn.addEventListener("click", removeLandingScreen);
+        }
+    }
+
+    clearA11yMethod = function getFocus() {           
+        document.getElementById("a11yblur").focus();
+    };
+
+    // LOADING END -------
+    </script>
+    <script type="text/javascript">
+    //PLAY WALKING AUDIO ON CLICK
+    var body = document.querySelector("body");
+
+    body.addEventListener("click", function(evt) {
+        if (evt.isTrusted) {
+            if (WALKING) {
+                walkSound(1);
+            }
+        }
+    })
+    </script>
+</body>
+
+</html>
