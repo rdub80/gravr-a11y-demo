@@ -676,9 +676,9 @@ AFRAME.registerComponent('track-gaze', {
 // a11y script comes last
 AFRAME.registerComponent('a11y', {
     schema: {
-        hearing: { default: false },
-        vision: { default: false },
-        motion: {  default: { shades: 0, blink: false, } },
+        hearing: { default: false }, // speech to text and captions
+        vision: { default: { noVision:false, dmmFactor:0, contrast:0 } },
+        motion: {  default: { shades: 0, blink: false } },
         mobility: { default: false },
     },
     init: function() {
@@ -688,7 +688,6 @@ AFRAME.registerComponent('a11y', {
 
         this.el.addEventListener("motion-sickness", () => { 
             //for motion sickness vestibular disorder
-
         });
 
         if (data.motion.blink) { //
@@ -759,11 +758,18 @@ AFRAME.registerComponent('a11y', {
             cylinder.setAttribute('id', `cylinder`);
             this.el.appendChild(cylinder);
         }
-
-        if (data.vision) {
-            //for visually impaired
+        if (data.vision.noVision) {
+            //for visually blind
             //add audio features
         }
+        if (data.vision.dmmFactor != 0) {
+            //for visually impared
+            //increase font-size dmm by factor value
+        }        
+        if (data.vision.contrast != 0) {
+            //for color blindness
+            //add post process filter increasing contrast level by value
+        }        
         if (data.hearing) {
             //for people with bad hearing
 
