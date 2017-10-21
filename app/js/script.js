@@ -5,19 +5,14 @@ var WALKING, STEP;
 // HELPER FUNCTIONS -------
 
 // Converts from degrees to radians.
-var degreesToradians = function(degrees) {
-  return degrees * Math.PI / 180;
+let degreesToradians = (degrees) => {
+    return degrees * Math.PI / 180;
 };
- 
-// // Converts from radians to degrees.
-// var radiansToDegrees = function(radians) {
-//   return radians * 180 / Math.PI;
-// }; replaced with THREE.js helper 'radToDeg'
 
 // Rounding number to decimals
-var roundNumber = function(number, decimals) {
-  decimals = decimals || 5;
-  return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+const roundNumber = (number, decimals) => {
+    decimals = decimals || 5;
+    return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
 };
 
 
@@ -27,35 +22,35 @@ var roundNumber = function(number, decimals) {
 window.addEventListener('load',
 
     function() {
-        var launchVr = document.querySelector("#enter-vr");
-        var piazza = document.querySelector("#piazza");
+        let launchVr = document.querySelector("#enter-vr");
+        let piazza = document.querySelector("#piazza");
 
         launchVr.addEventListener("click", function() {
-            if(piazza){
+            if (piazza) {
                 console.log("Entering Experience");
                 ambientSounds();
-                speak("You are now standing in the virtual town square ");                
+                speak("You are now standing in the virtual town square ");
             }
         });
 
     }, false);
 
 
-var hideHoverArea = function(targetHoverArea) {
+const hideHoverArea = (targetHoverArea) => {
     targetHoverArea = targetHoverArea.replace('description:', '').replace(/\s/g, '');
 
-    var hoverAreaElements = document.querySelectorAll(".hoverArea");
+    let hoverAreaElements = document.querySelectorAll(".hoverArea");
 
     hoverAreaElements.forEach(function(hoverAreaElement) {
         hoverAreaElement.setAttribute('visible', true);
     });
 
-    var targetAreaElement = document.querySelector("#" + targetHoverArea);
+    let targetAreaElement = document.querySelector("#" + targetHoverArea);
     targetAreaElement.setAttribute('visible', false);
 }
 
 //Play walking sound.
-var walkSound = function(volume) {
+const walkSound = (volume) => {
     //    new Audio('../sounds/step.mp3').play();
     STEP = new Audio('https://cdn.rawgit.com/rdub80/gravr-a11y-demo/cad67274/app/sounds/steps.mp3');
     STEP.volume = volume;
@@ -63,18 +58,18 @@ var walkSound = function(volume) {
     STEP.play();
 }
 
-var ambientSounds = function() {
-    var soundElements = document.querySelectorAll(".ambientSound");
+const ambientSounds = () => {
+    let soundElements = document.querySelectorAll(".ambientSound");
 
     soundElements.forEach(function(element) {
         element.components.sound.playSound();
     })
 }
 
-var speak = function(words) {
+const speak = (words) => {
     silence();
 
-    var utterThis = new SpeechSynthesisUtterance(words);
+    let utterThis = new SpeechSynthesisUtterance(words);
     //var voices = synth.getVoices();
     //utterThis.voice = voices[0];
     utterThis.lang = 'en-US';
@@ -86,8 +81,50 @@ var speak = function(words) {
     synth.speak(utterThis);
 }
 
-var silence = function() {
+const silence = () => {
     synth.cancel();
+}
+
+//Determines if there is significant head movement.
+const measureVelocity = (currentPos, previousPos) => {
+    let passedThresh = false;
+
+    Object.keys(currentPos).forEach((key) => {
+        let difference = currentPos[key] - previousPos[key];
+        //Set threshold for sickness velocity.
+        if (Math.abs(difference) > 23) {
+            passedThresh = true;
+        }
+    })
+
+    return passedThresh;
+}
+
+const motionShading = () => {
+    let camera = document.querySelector("a-entity[camera]");
+    camera.emit('motion-sickness');
+
+    let eyelids = document.querySelector("#eyelids");
+    if (eyelids) { eyelids.emit('blink') };
+}
+
+//Remove shading for motion sickness.
+const removeMotionShading = () => {
+    let gradient = document.querySelector("#gradient");
+    let cylinder = document.querySelector("#cylinder");
+    let eyelids = document.querySelector("#eyelids");
+
+    if (gradient) { gradient.parentNode.removeChild(gradient); };
+    if (cylinder) {
+        cylinder.parentNode.removeChild(cylinder);
+        if (eyelids) {
+            eyelids.emit("unblink");
+            //Allow eyelids to 'unblink' before removing.
+            setTimeout(() => {
+                eyelids.parentNode.removeChild(eyelids);
+            }, 205)
+        };
+    };
 }
 
 function getParameterByName(name, url) {
@@ -594,91 +631,44 @@ AFRAME.registerComponent('orientation', {
 
 // calculate motion speed
 AFRAME.registerComponent('track-gaze', {
-    schema: {
-        dist: { type: 'number', default: -1.5 },
-    },
     init: function() {
-        var data = this.data;
-        var _this = this;
         var el = this.el;
+        var _this = this;
 
-        var lastPos = this.lastPos;
-        var newPos = this.newPos;
-        var timer = this.timer;
-        var delta = this.delta;
-
-        var yawText = document.createElement("a-text");
-        yawText.setAttribute('position', `0 0.1 ${data.dist}`);
-        yawText.setAttribute('value', `yaw Deg (rotation on X): 0`);
-        yawText.setAttribute('align', `left`);
-        yawText.setAttribute('color', `yellow`);
-        yawText.setAttribute('scale', `0.35 0.35 0.35`);
-        this.el.appendChild(yawText);
-        this.yawText = yawText;
-
-        var pitchText = document.createElement("a-text");
-        pitchText.setAttribute('position', `0 0.2 ${data.dist}`);
-        pitchText.setAttribute('rotation', `0 0 0`);
-        pitchText.setAttribute('value', `pitch Deg (rotation on Y): 0`);
-        pitchText.setAttribute('align', `left`);
-        pitchText.setAttribute('color', `yellow`);
-        pitchText.setAttribute('scale', `0.35 0.35 0.35`);
-        this.el.appendChild(pitchText);
-        this.pitchText = pitchText;
-
-        var rollText = document.createElement("a-text");
-        rollText.setAttribute('position', `0 0.3 ${data.dist}`);
-        rollText.setAttribute('rotation', `0 0 0`);
-        rollText.setAttribute('value', `roll Deg (rotation on Z): 0`);
-        rollText.setAttribute('align', `left`);
-        rollText.setAttribute('color', `yellow`);
-        rollText.setAttribute('scale', `0.35 0.35 0.35`);
-        this.el.appendChild(rollText);
-        this.rollText = rollText;
-
-        //this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
+        this.position = {
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
 
         this.el.addEventListener('componentchanged', function(evt) {
             if (evt.detail.name === 'rotation') {
-                var _Pos = evt.detail.target.object3D.rotation;
-                //_this.checkSpeed(_Pos.x);
-                _this.posTrack(_Pos);
-                //console.log("_Pos.x " + _Pos.x);
+                var _pos = evt.detail.target.object3D.rotation;
+                _this.posTrack(_pos);
             }
         });
-    },
-    clear: function(){
-        //this.lastPos = null; 
-        this.delta = 0; 
-    },
-    checkSpeed: function(newPos){
-/*
-        this.newPos = value;
-        if ( this.lastPos != null ){ // && this.newPos < maxScroll 
-            this.delta = this.newPos - this.lastPos;
-        }
-        this.lastPos = this.newPos;
-        clearTimeout(this.timer);
-        this.timer = setTimeout(this.clear, 50);
-        console.log("delta " + this.delta);
-*/
     },
     posTrack: function(posData) {
         var radToDeg = THREE.Math.radToDeg;
 
+        //Locally Update Current Position
+        var currentPos = {
+            yaw: roundNumber(radToDeg(posData.y), 2),
+            pitch: roundNumber(radToDeg(posData.x), 2),
+            roll: roundNumber(radToDeg(posData.z), 2)
+        }
 
-        var yaw = roundNumber(radToDeg(posData.x), 2);
-        var pitch = roundNumber(radToDeg(posData.y), 2);
-        var roll = roundNumber(radToDeg(posData.z), 2);
-        this.yawText.setAttribute("value", "yaw Deg (rotation on X): "+yaw);
-        this.pitchText.setAttribute("value", "pitch Deg (rotation on Y): "+pitch);
-        this.rollText.setAttribute("value", "roll Deg (rotation on Z): "+roll);
+        var sicknessThreshPassed = measureVelocity(currentPos, this.position);
 
-        // var rotateY = this.el.object3D.getWorldRotation().y;
-        // var rotateX = this.el.object3D.getWorldRotation().x;
-        // console.log("rotateY: " + radiansToDegrees(rotateY) + " - rotateX: " + radiansToDegrees(rotateX));
-    },
-    tick: function() {
+        if (sicknessThreshPassed) {
+            //Apply motion-sickness Shading.
+            motionShading();
+        } else {
+            removeMotionShading();
+        }
+
+        //Globally Update Current Position
+        this.position = currentPos;
     }
 });
 
@@ -686,20 +676,91 @@ AFRAME.registerComponent('track-gaze', {
 // a11y script comes last
 AFRAME.registerComponent('a11y', {
     schema: {
-        hearing: { default: false }, 
-        vision: { default: false }, 
-        motion: { default: false }, 
-        mobility: { default: false }, 
+        hearing: { default: false },
+        vision: { default: false },
+        motion: { default: false },
+        mobility: { default: false },
     },
     init: function() {
         var data = this.data;
         var _this = this;
         var el = this.el;
-        if(data.vision){
+
+        this.el.addEventListener("motion-sickness", () => {
+            //for motion sickness vestibular disorder
+            let cylinders = document.querySelectorAll("#cylinder");
+
+            if (cylinders.length === 0) {
+                var canvas = this.canvas = document.createElement('canvas');
+                canvas.id = "gradient";
+                canvas.width = 32;
+                canvas.height = 32;
+                canvas.style.display = "none";
+                var ctx = this.ctx = canvas.getContext("2d");
+                var grd = ctx.createLinearGradient(0, 0, 0, 32);
+                grd.addColorStop(0, "rgba(0,0,0,0)");
+                grd.addColorStop(0.65, "rgba(0,0,0,1)");
+                ctx.fillStyle = grd;
+                ctx.fillRect(0, 0, 32, 32);
+                document.body.appendChild(canvas);
+
+                var cylinder = document.createElement("a-entity");
+                cylinder.setAttribute('geometry', `primitive: cylinder; radius:0.25; height:0.5; segmentsRadial:64; openEnded:true`);
+                cylinder.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:back;`);
+                cylinder.setAttribute('rotation', `-90 0 0`);
+                cylinder.setAttribute('position', `0 0 -0.25`);
+                cylinder.setAttribute('id', `cylinder`);
+                this.el.appendChild(cylinder);
+
+                //add speed shutters triggered by function 'blink' & 'unblink'
+                var lid = document.createElement("a-entity");
+                lid.setAttribute('geometry', `primitive: sphere; radius:0.1;  phiStart:90; phiLength:180;`);
+                lid.setAttribute('material', `shader: flat; color:#000; side:back;`);
+                lid.setAttribute('rotation', `-90 0 -90`);
+                lid.setAttribute('position', `0 0 0`);
+                lid.setAttribute('id', `eyelids`);
+                this.el.appendChild(lid);
+
+                var lidAniClose1 = document.createElement("a-animation");
+                lidAniClose1.setAttribute('attribute', 'geometry.phiStart');
+                lidAniClose1.setAttribute('begin', 'blink');
+                lidAniClose1.setAttribute('from', '90');
+                lidAniClose1.setAttribute('to', '0');
+                lidAniClose1.setAttribute('dur', '200');
+                lid.appendChild(lidAniClose1);
+                var lidAniClose2 = document.createElement("a-animation");
+                lidAniClose2.setAttribute('attribute', 'geometry.phiLength');
+                lidAniClose2.setAttribute('begin', 'blink');
+                lidAniClose2.setAttribute('from', '180');
+                lidAniClose2.setAttribute('to', '360');
+                lidAniClose2.setAttribute('dur', '200');
+                lid.appendChild(lidAniClose2);
+
+                var lidAniOpen1 = document.createElement("a-animation");
+                lidAniOpen1.setAttribute('attribute', 'geometry.phiStart');
+                lidAniOpen1.setAttribute('begin', 'unblink');
+                lidAniOpen1.setAttribute('from', '0');
+                lidAniOpen1.setAttribute('to', '90');
+                lidAniOpen1.setAttribute('dur', '200');
+                lid.appendChild(lidAniOpen1);
+                var lidAniopen2 = document.createElement("a-animation");
+                lidAniopen2.setAttribute('attribute', 'geometry.phiLength');
+                lidAniopen2.setAttribute('begin', 'unblink');
+                lidAniopen2.setAttribute('from', '360');
+                lidAniopen2.setAttribute('to', '180');
+                lidAniopen2.setAttribute('dur', '200');
+                lid.appendChild(lidAniopen2);
+
+                //add metatag
+            }
+
+        });
+
+        if (data.vision) {
             //for visually impaired
             //add audio features
         }
-        if(data.hearing){
+        if (data.hearing) {
             //for people with bad hearing
 
             var srtCaps = document.createElement("a-entity");
@@ -709,71 +770,7 @@ AFRAME.registerComponent('a11y', {
             srtCaps.setAttribute('position', `0 -0.5 -1`);
             this.el.appendChild(srtCaps);
         }
-        if(data.motion){
-            //for motion sickness vestibular disorder
-
-            //creating gradient
-            var canvas = this.canvas = document.createElement('canvas');
-            canvas.id = "gradient";
-            canvas.width = 32;
-            canvas.height = 32;
-            canvas.style.display = "none";
-            var ctx = this.ctx = canvas.getContext("2d");
-            var grd = ctx.createLinearGradient(0, 0, 0, 32);
-            grd.addColorStop(0, "rgba(0,0,0,0)");
-            grd.addColorStop(0.65, "rgba(0,0,0,1)");
-            ctx.fillStyle = grd;
-            ctx.fillRect(0 , 0, 32, 32);
-            document.body.appendChild(canvas);
-
-            var cylinder = document.createElement("a-entity");
-            cylinder.setAttribute('geometry', `primitive: cylinder; radius:0.25; height:0.5; segmentsRadial:64; openEnded:true`);
-            cylinder.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:back;`);
-            cylinder.setAttribute('rotation', `-90 0 0`);
-            cylinder.setAttribute('position', `0 0 -0.25`);
-            this.el.appendChild(cylinder);
-
-            //add speed shutters triggered by function 'blink' & 'unblink'
-            var lid = document.createElement("a-entity");
-            lid.setAttribute('geometry', `primitive: sphere; radius:0.1;  phiStart:90; phiLength:180;`);
-            lid.setAttribute('material', `shader: flat; color:#000; side:back;`);
-            lid.setAttribute('rotation', `-90 0 -90`);
-            lid.setAttribute('position', `0 0 0`);
-            lid.setAttribute('id', `eyelids`);
-            this.el.appendChild(lid);
-            var lidAniClose1 = document.createElement("a-animation");
-            lidAniClose1.setAttribute('attribute', 'geometry.phiStart');
-            lidAniClose1.setAttribute('begin', 'blink');
-            lidAniClose1.setAttribute('from', '90');
-            lidAniClose1.setAttribute('to', '0');
-            lidAniClose1.setAttribute('dur', '200');
-            lid.appendChild(lidAniClose1);
-            var lidAniClose2 = document.createElement("a-animation");
-            lidAniClose2.setAttribute('attribute', 'geometry.phiLength');
-            lidAniClose2.setAttribute('begin', 'blink');
-            lidAniClose2.setAttribute('from', '180');
-            lidAniClose2.setAttribute('to', '360');
-            lidAniClose2.setAttribute('dur', '200');
-            lid.appendChild(lidAniClose2);
-            var lidAniOpen1 = document.createElement("a-animation");
-            lidAniOpen1.setAttribute('attribute', 'geometry.phiStart');
-            lidAniOpen1.setAttribute('begin', 'unblink');
-            lidAniOpen1.setAttribute('from', '0');
-            lidAniOpen1.setAttribute('to', '90');
-            lidAniOpen1.setAttribute('dur', '200');
-            lid.appendChild(lidAniOpen1);
-            var lidAniopen2 = document.createElement("a-animation");
-            lidAniopen2.setAttribute('attribute', 'geometry.phiLength');
-            lidAniopen2.setAttribute('begin', 'unblink');
-            lidAniopen2.setAttribute('from', '360');
-            lidAniopen2.setAttribute('to', '180');
-            lidAniopen2.setAttribute('dur', '200');
-            lid.appendChild(lidAniopen2);
-
-            //add metatag
-
-        }
-        if(data.mobility){
+        if (data.mobility) {
             //add navigation motion and selectability
 
             var nav = document.createElement("a-entity");
@@ -800,8 +797,8 @@ AFRAME.registerComponent('a11y', {
             forwardArrow.setAttribute('margin', `0 0 0`);
             forwardArrow.setAttribute('position', `0 0.0175 0.001`);
             forwardArrow.setAttribute('font-color', `#000`);
-            forwardArrow.setAttribute('border-color', `#f5f5f5`);  
-            forwardArrow.setAttribute('background-color', `#fff`);  
+            forwardArrow.setAttribute('border-color', `#f5f5f5`);
+            forwardArrow.setAttribute('background-color', `#fff`);
             move.appendChild(forwardArrow);
             var backwardArrow = document.createElement("a-gui-icon-button");
             backwardArrow.setAttribute('height', `0.75`);
@@ -812,8 +809,8 @@ AFRAME.registerComponent('a11y', {
             backwardArrow.setAttribute('margin', `0 0 0`);
             backwardArrow.setAttribute('position', `0 -0.0175 0.001`);
             backwardArrow.setAttribute('font-color', `#000`);
-            backwardArrow.setAttribute('border-color', `#f5f5f5`);  
-            backwardArrow.setAttribute('background-color', `#fff`);  
+            backwardArrow.setAttribute('border-color', `#f5f5f5`);
+            backwardArrow.setAttribute('background-color', `#fff`);
             move.appendChild(backwardArrow);
             var leftArrow = document.createElement("a-gui-icon-button");
             leftArrow.setAttribute('height', `0.75`);
@@ -824,8 +821,8 @@ AFRAME.registerComponent('a11y', {
             leftArrow.setAttribute('margin', `0 0 0`);
             leftArrow.setAttribute('position', `-0.0175 0 0.001`);
             leftArrow.setAttribute('font-color', `#000`);
-            leftArrow.setAttribute('border-color', `#f5f5f5`);  
-            leftArrow.setAttribute('background-color', `#fff`);  
+            leftArrow.setAttribute('border-color', `#f5f5f5`);
+            leftArrow.setAttribute('background-color', `#fff`);
             move.appendChild(leftArrow);
             var rightArrow = document.createElement("a-gui-icon-button");
             rightArrow.setAttribute('height', `0.75`);
@@ -836,8 +833,8 @@ AFRAME.registerComponent('a11y', {
             rightArrow.setAttribute('margin', `0 0 0`);
             rightArrow.setAttribute('position', `0.0175 0 0.0015`);
             rightArrow.setAttribute('font-color', `#000`);
-            rightArrow.setAttribute('border-color', `#f5f5f5`);  
-            rightArrow.setAttribute('background-color', `#fff`);  
+            rightArrow.setAttribute('border-color', `#f5f5f5`);
+            rightArrow.setAttribute('background-color', `#fff`);
             move.appendChild(rightArrow);
             var upArrow = document.createElement("a-gui-icon-button");
             upArrow.setAttribute('height', `0.75`);
@@ -848,8 +845,8 @@ AFRAME.registerComponent('a11y', {
             upArrow.setAttribute('margin', `0 0 0`);
             upArrow.setAttribute('position', `-0.04 0 0.02`);
             upArrow.setAttribute('font-color', `#000`);
-            upArrow.setAttribute('border-color', `#f5f5f5`);  
-            upArrow.setAttribute('background-color', `#fff`);  
+            upArrow.setAttribute('border-color', `#f5f5f5`);
+            upArrow.setAttribute('background-color', `#fff`);
             move.appendChild(upArrow);
             var downArrow = document.createElement("a-gui-icon-button");
             downArrow.setAttribute('height', `0.75`);
@@ -860,8 +857,8 @@ AFRAME.registerComponent('a11y', {
             downArrow.setAttribute('margin', `0 0 0`);
             downArrow.setAttribute('position', `-0.04 0 0`);
             downArrow.setAttribute('font-color', `#000`);
-            downArrow.setAttribute('border-color', `#f5f5f5`);  
-            downArrow.setAttribute('background-color', `#fff`);  
+            downArrow.setAttribute('border-color', `#f5f5f5`);
+            downArrow.setAttribute('background-color', `#fff`);
             move.appendChild(downArrow);
 
             var pitch = document.createElement("a-entity");
@@ -879,8 +876,8 @@ AFRAME.registerComponent('a11y', {
             rightPitchTurn.setAttribute('margin', `0 0 0`);
             rightPitchTurn.setAttribute('position', `0.0175 0.0335 0.001`);
             rightPitchTurn.setAttribute('font-color', `#000`);
-            rightPitchTurn.setAttribute('border-color', `#f5f5f5`);  
-            rightPitchTurn.setAttribute('background-color', `#fff`);  
+            rightPitchTurn.setAttribute('border-color', `#f5f5f5`);
+            rightPitchTurn.setAttribute('background-color', `#fff`);
             pitch.appendChild(rightPitchTurn);
             var leftPitchTurn = document.createElement("a-gui-icon-button");
             leftPitchTurn.setAttribute('height', `0.5`);
@@ -891,8 +888,8 @@ AFRAME.registerComponent('a11y', {
             leftPitchTurn.setAttribute('margin', `0 0 0`);
             leftPitchTurn.setAttribute('position', `-0.0175 0.0335 0.001`);
             leftPitchTurn.setAttribute('font-color', `#000`);
-            leftPitchTurn.setAttribute('border-color', `#f0f0f0`);  
-            leftPitchTurn.setAttribute('background-color', `#fff`);  
+            leftPitchTurn.setAttribute('border-color', `#f0f0f0`);
+            leftPitchTurn.setAttribute('background-color', `#fff`);
             pitch.appendChild(leftPitchTurn);
             var rightpitchRing = document.createElement("a-ring");
             rightpitchRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:0; thetaLength:90;')
@@ -922,8 +919,8 @@ AFRAME.registerComponent('a11y', {
             rightRollTurn.setAttribute('margin', `0 0 0`);
             rightRollTurn.setAttribute('position', `0.0175 0.0335 0.001`);
             rightRollTurn.setAttribute('font-color', `#000`);
-            rightRollTurn.setAttribute('border-color', `#f5f5f5`);  
-            rightRollTurn.setAttribute('background-color', `#fff`);  
+            rightRollTurn.setAttribute('border-color', `#f5f5f5`);
+            rightRollTurn.setAttribute('background-color', `#fff`);
             roll.appendChild(rightRollTurn);
             var leftRollTurn = document.createElement("a-gui-icon-button");
             leftRollTurn.setAttribute('height', `0.5`);
@@ -934,8 +931,8 @@ AFRAME.registerComponent('a11y', {
             leftRollTurn.setAttribute('margin', `0 0 0`);
             leftRollTurn.setAttribute('position', `-0.0175 0.0335 0.001`);
             leftRollTurn.setAttribute('font-color', `#000`);
-            leftRollTurn.setAttribute('border-color', `#f0f0f0`);  
-            leftRollTurn.setAttribute('background-color', `#fff`);  
+            leftRollTurn.setAttribute('border-color', `#f0f0f0`);
+            leftRollTurn.setAttribute('background-color', `#fff`);
             roll.appendChild(leftRollTurn);
             var rightRollRing = document.createElement("a-ring");
             rightRollRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:0; thetaLength:90;')
@@ -965,8 +962,8 @@ AFRAME.registerComponent('a11y', {
             rightYawTurn.setAttribute('margin', `0 0 0`);
             rightYawTurn.setAttribute('position', `0.0175 0.0335 0.001`);
             rightYawTurn.setAttribute('font-color', `#000`);
-            rightYawTurn.setAttribute('border-color', `#f5f5f5`);  
-            rightYawTurn.setAttribute('background-color', `#fff`);  
+            rightYawTurn.setAttribute('border-color', `#f5f5f5`);
+            rightYawTurn.setAttribute('background-color', `#fff`);
             yaw.appendChild(rightYawTurn);
             var leftYawTurn = document.createElement("a-gui-icon-button");
             leftYawTurn.setAttribute('height', `0.5`);
@@ -977,8 +974,8 @@ AFRAME.registerComponent('a11y', {
             leftYawTurn.setAttribute('margin', `0 0 0`);
             leftYawTurn.setAttribute('position', `-0.0175 0.0335 0.001`);
             leftYawTurn.setAttribute('font-color', `#000`);
-            leftYawTurn.setAttribute('border-color', `#f0f0f0`);  
-            leftYawTurn.setAttribute('background-color', `#fff`);  
+            leftYawTurn.setAttribute('border-color', `#f0f0f0`);
+            leftYawTurn.setAttribute('background-color', `#fff`);
             yaw.appendChild(leftYawTurn);
             var rightYawRing = document.createElement("a-ring");
             rightYawRing.setAttribute('geometry', 'primitive:ring; radiusInner:0.03; radiusOuter:0.045; thetaStart:0; thetaLength:90;')
@@ -992,15 +989,15 @@ AFRAME.registerComponent('a11y', {
             leftYawRing.setAttribute('rotation', '0 0 0');
             leftYawRing.setAttribute('position', '0 0 0');
             yaw.appendChild(leftYawRing);
-        }        
+        }
     },
     update: function(oldData) {
         // Do something when component's data is updated.
     },
-    remove: function () {
+    remove: function() {
         // Do something the component or its entity is detached.
     },
-    tick: function (time, timeDelta) {
+    tick: function(time, timeDelta) {
         // Do something on every scene tick or frame.
     }
 });
