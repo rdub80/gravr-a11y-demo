@@ -101,8 +101,8 @@ const measureVelocity = (currentPos, previousPos) => {
 }
 
 const motionShading = () => {
-    let camera = document.querySelector("a-entity[camera]");
-    camera.emit('motion-sickness');
+    // let camera = document.querySelector("a-entity[camera]");
+    // camera.emit('motion-sickness');
 
     let eyelids = document.querySelector("#eyelids");
     if (eyelids) { eyelids.emit('blink') };
@@ -114,9 +114,9 @@ const removeMotionShading = () => {
     if (eyelids) {
         eyelids.emit("unblink");
         //Allow eyelids to 'unblink' before removing.
-        setTimeout(() => {
-            eyelids.parentNode.removeChild(eyelids);
-        }, 205)
+        // setTimeout(() => {
+        //     eyelids.parentNode.removeChild(eyelids);
+        // }, 205)
     };
 }
 
@@ -643,6 +643,7 @@ AFRAME.registerComponent('track-gaze', {
     },
     posTrack: function(posData) {
         var radToDeg = THREE.Math.radToDeg;
+        var unblinkTimer;
 
         //Locally Update Current Position
         var currentPos = {
@@ -654,10 +655,16 @@ AFRAME.registerComponent('track-gaze', {
         var sicknessThreshPassed = measureVelocity(currentPos, this.position);
 
         if (sicknessThreshPassed) {
-            //Apply motion-sickness Shading.
+            //Apply motion-sickness blink.
+            clearTimeout(unblinkTimer);
             motionShading();
+            console.log("blink");
         } else {
-            removeMotionShading();
+            //Apply motion-sickness unblink.            
+            unblinkTimer = setTimeout(() => {
+                removeMotionShading();
+            }, 500);
+            console.log("unblink");
         }
 
         //Globally Update Current Position
@@ -671,7 +678,7 @@ AFRAME.registerComponent('a11y', {
     schema: {
         hearing: { default: false },
         vision: { default: false },
-        motion: { default: false },
+        motion: {  default: { shades: 0, blink: false, } },
         mobility: { default: false },
     },
     init: function() {
@@ -679,9 +686,12 @@ AFRAME.registerComponent('a11y', {
         var _this = this;
         var el = this.el;
 
-        this.el.addEventListener("motion-sickness", () => {
+        this.el.addEventListener("motion-sickness", () => { 
             //for motion sickness vestibular disorder
 
+        });
+
+        if (data.motion.blink) { //
             //add speed shutters triggered by function 'blink' & 'unblink'
             var lid = document.createElement("a-entity");
             lid.setAttribute('geometry', `primitive: sphere; radius:0.1;  phiStart:90; phiLength:180;`);
@@ -711,20 +721,20 @@ AFRAME.registerComponent('a11y', {
             lidAniOpen1.setAttribute('begin', 'unblink');
             lidAniOpen1.setAttribute('from', '0');
             lidAniOpen1.setAttribute('to', '90');
-            lidAniOpen1.setAttribute('dur', '200');
+            lidAniOpen1.setAttribute('dur', '0');
             lid.appendChild(lidAniOpen1);
             var lidAniopen2 = document.createElement("a-animation");
             lidAniopen2.setAttribute('attribute', 'geometry.phiLength');
             lidAniopen2.setAttribute('begin', 'unblink');
             lidAniopen2.setAttribute('from', '360');
             lidAniopen2.setAttribute('to', '180');
-            lidAniopen2.setAttribute('dur', '200');
+            lidAniopen2.setAttribute('dur', '0');
             lid.appendChild(lidAniopen2);
 
             //add metatag
+        }
 
-        });
-        if (data.motion) {
+        if (data.motion.shades != 0) {
             var canvas = this.canvas = document.createElement('canvas');
             canvas.id = "gradient";
             canvas.width = 32;
@@ -732,7 +742,10 @@ AFRAME.registerComponent('a11y', {
             canvas.style.display = "none";
             var ctx = this.ctx = canvas.getContext("2d");
             var grd = ctx.createLinearGradient(0, 0, 0, 32);
+            var shadeStrength = 1 - data.motion.shades; // 0.65
             grd.addColorStop(0, "rgba(0,0,0,0)");
+            console.log(shadeStrength); // returning NaN which brakes line below 
+//            grd.addColorStop(shadeStrength, "rgba(0,0,0,1)");
             grd.addColorStop(0.65, "rgba(0,0,0,1)");
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, 32, 32);
@@ -993,61 +1006,7 @@ AFRAME.registerComponent('a11y', {
     }
 });
 
-/*
-AFRAME.registerShader('gradient', {
-    schema: {
-        topColor: {type: 'vec4', default: '1.0, 0.0, 1.0, 1.0', is: 'uniform'},
-        bottomColor: {type: 'vec4', default: '1.0, 1.0, 0.0, 1.0', is: 'uniform'}
-    },
-    vertexColors: THREE.VertexColors,
-    side: THREE.DoubleSide,
-    transparent: true,
-    vertexShader: [
-        'void main() {',
-        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(0,0,0, 1.0);',
-        '}'
-    ].join('\n'),
-    fragmentShader: [
-        'uniform vec4 bottomColor;',
-        'uniform vec4 topColor;',
-        'uniform vec2 resolution;',
 
-        'void main() {',
-        '   gl_FragColor = vec4(mix(bottomColor, topColor, (gl_FragCoord.y / resolution.y)));'
-        '}'
-    ].join('\n')
-});
-
-*/
-
-
-// AFRAME.registerComponent('gradient', {
-//     schema: {
-//         color: {
-//             default: 'rgba(0,0,0,1)'
-//         }
-//     },
-//     init: function() {
-//         var _this = this;
-//         var data = this.data;
-
-//         var canvas = this.canvas = document.createElement('canvas');
-//         canvas.id = "gradient";
-//         canvas.width = 128;
-//         canvas.height = 128;
-//         canvas.style.display = "none";
-//         var ctx = this.ctx = canvas.getContext("2d");
-//         var grd = ctx.createLinearGradient(0, 0, 0, 128);
-//         grd.addColorStop(0, "rgba(0,0,0,0)");
-//         grd.addColorStop(1, "rgba(0,0,0,1)");
-
-//         ctx.fillStyle = grd;
-//         ctx.fillRect(0 , 0, 128, 128);
-//         document.body.appendChild(canvas);
-//         this.el.setAttribute('material', `shader: flat; src: #${canvas.id}; transparent: true; opacity: 1; side:front;`);
-
-//     }
-// });
 
 
 // var defaultCameraUserHeight; 
@@ -1058,9 +1017,6 @@ AFRAME.registerShader('gradient', {
 //     });
 //   }
 //  addRenderStartListener(); //document.body.addEventListener('DOMContentLoaded', addRenderStartListener);
-
-
-
 
 /*
 AFRAME.registerComponent('gravr-avatar', {
