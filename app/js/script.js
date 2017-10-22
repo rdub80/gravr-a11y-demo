@@ -618,7 +618,7 @@ AFRAME.registerComponent('orientation', {
 AFRAME.registerComponent('a11y', {
     schema: {
         hearing: { default: false }, // speech to text and captions
-        vision: { default: { noVision: false, dmmFactor: 0, contrast: 0 } },
+        vision: {type:'vec3', default: { noVision: 0, dmmFactor: 0, contrast: 0 } },
         motion: {type:'vec2', default: { shades: 0, blink: 0 } },
         mobility: { default: false },
     },
@@ -692,9 +692,9 @@ AFRAME.registerComponent('a11y', {
             var ctx = this.ctx = canvas.getContext("2d");
             var grd = ctx.createLinearGradient(0, 0, 0, 32);
             var shadeStrength = 1 - data.motion.shades; // 0.65
+            console.log("shadeStrength "+shadeStrength);
             grd.addColorStop(0, "rgba(0,0,0,0)");
             grd.addColorStop(shadeStrength, "rgba(0,0,0,1)");
-            grd.addColorStop(0.65, "rgba(0,0,0,1)");
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, 32, 32);
             document.body.appendChild(canvas);
