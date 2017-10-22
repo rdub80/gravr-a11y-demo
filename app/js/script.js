@@ -92,7 +92,7 @@ const measureVelocity = (currentPos, previousPos) => {
     Object.keys(currentPos).forEach((key) => {
         let difference = currentPos[key] - previousPos[key];
         //Set threshold for sickness velocity.
-        if (Math.abs(difference) > 23) {
+        if (Math.abs(difference) > 13) {
             passedThresh = true;
         }
     })
@@ -101,9 +101,6 @@ const measureVelocity = (currentPos, previousPos) => {
 }
 
 const motionShading = () => {
-    // let camera = document.querySelector("a-entity[camera]");
-    // camera.emit('motion-sickness');
-
     let eyelids = document.querySelector("#eyelids");
     if (eyelids) { eyelids.emit('blink') };
 }
@@ -113,10 +110,6 @@ const removeMotionShading = () => {
     let eyelids = document.querySelector("#eyelids");
     if (eyelids) {
         eyelids.emit("unblink");
-        //Allow eyelids to 'unblink' before removing.
-        // setTimeout(() => {
-        //     eyelids.parentNode.removeChild(eyelids);
-        // }, 205)
     };
 }
 
@@ -621,72 +614,26 @@ AFRAME.registerComponent('orientation', {
     }
 });
 
-
-// calculate motion speed
-AFRAME.registerComponent('track-gaze', {
-    init: function() {
-        var el = this.el;
-        var _this = this;
-
-        this.position = {
-            yaw: 0,
-            pitch: 0,
-            roll: 0
-        }
-
-        this.el.addEventListener('componentchanged', function(evt) {
-            if (evt.detail.name === 'rotation') {
-                var _pos = evt.detail.target.object3D.rotation;
-                _this.posTrack(_pos);
-            }
-        });
-    },
-    posTrack: function(posData) {
-        var radToDeg = THREE.Math.radToDeg;
-        var unblinkTimer;
-
-        //Locally Update Current Position
-        var currentPos = {
-            yaw: roundNumber(radToDeg(posData.y), 2),
-            pitch: roundNumber(radToDeg(posData.x), 2),
-            roll: roundNumber(radToDeg(posData.z), 2)
-        }
-
-        var sicknessThreshPassed = measureVelocity(currentPos, this.position);
-
-        if (sicknessThreshPassed) {
-            //Apply motion-sickness blink.
-            clearTimeout(unblinkTimer);
-            motionShading();
-            console.log("blink");
-        } else {
-            //Apply motion-sickness unblink.            
-            unblinkTimer = setTimeout(() => {
-                removeMotionShading();
-            }, 500);
-            console.log("unblink");
-        }
-
-        //Globally Update Current Position
-        this.position = currentPos;
-    }
-});
-
-
 // a11y script comes last
 AFRAME.registerComponent('a11y', {
     schema: {
         hearing: { default: false }, // speech to text and captions
-        vision: { default: { noVision:false, dmmFactor:0, contrast:0 } },
-        motion: {  default: { shades: 0, blink: false } },
+        vision: { default: { noVision: false, dmmFactor: 0, contrast: 0 } },
+        motion: { default: { shades: 0, blink: false } },
         mobility: { default: false },
     },
     init: function() {
         var data = this.data;
         var _this = this;
         var el = this.el;
+        this.blinked = false;
+        this.position = {
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
 
-        this.el.addEventListener("motion-sickness", () => { 
+        this.el.addEventListener("motion-sickness", () => {
             //for motion sickness vestibular disorder
         });
 
@@ -744,7 +691,7 @@ AFRAME.registerComponent('a11y', {
             var shadeStrength = 1 - data.motion.shades; // 0.65
             grd.addColorStop(0, "rgba(0,0,0,0)");
             console.log(shadeStrength); // returning NaN which brakes line below 
-//            grd.addColorStop(shadeStrength, "rgba(0,0,0,1)");
+            //            grd.addColorStop(shadeStrength, "rgba(0,0,0,1)");
             grd.addColorStop(0.65, "rgba(0,0,0,1)");
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, 32, 32);
@@ -765,11 +712,11 @@ AFRAME.registerComponent('a11y', {
         if (data.vision.dmmFactor != 0) {
             //for visually impared
             //increase font-size dmm by factor value
-        }        
+        }
         if (data.vision.contrast != 0) {
             //for color blindness
             //add post process filter increasing contrast level by value
-        }        
+        }
         if (data.hearing) {
             //for people with bad hearing
 
@@ -1009,6 +956,37 @@ AFRAME.registerComponent('a11y', {
     },
     tick: function(time, timeDelta) {
         // Do something on every scene tick or frame.
+
+        let radToDeg = THREE.Math.radToDeg;
+        let unblinkTimer;
+        //Locally Update Current Position
+        let currentPos = {
+            yaw: parseInt(roundNumber(radToDeg(this.el.object3D.getWorldRotation()._y), 2)),
+            pitch: parseInt(roundNumber(radToDeg(this.el.object3D.getWorldRotation()._x), 2)),
+            roll: parseInt(roundNumber(radToDeg(this.el.object3D.getWorldRotation()._z), 2))
+        }
+
+        //Only test velocity if head position changed. Or eyes closed. (Protects performance.)
+        if (this.position.pitch !== currentPos.pitch || this.blinked) {
+            //Test velocity of head movement
+            let sicknessThreshPassed = measureVelocity(currentPos, this.position);
+            //If velocity > threshold. Blink. Else, unblink.
+            if (sicknessThreshPassed) {
+                //Apply motion-sickness blink.
+                clearTimeout(unblinkTimer);
+                motionShading();
+                this.blinked = true;
+            } else {
+                //Apply motion-sickness unblink.            
+                unblinkTimer = setTimeout(() => {
+                    removeMotionShading();
+                    this.blinked = false;
+                }, 500);
+            }
+
+            //Globally Update Current Position
+            this.position = currentPos;
+        }
     }
 });
 
