@@ -619,13 +619,16 @@ AFRAME.registerComponent('a11y', {
     schema: {
         hearing: { default: false }, // speech to text and captions
         vision: { default: { noVision: false, dmmFactor: 0, contrast: 0 } },
-        motion: { default: { shades: 0, blink: false } },
+        motion: {type:'vec2', default: { shades: 0, blink: 0 } },
         mobility: { default: false },
     },
     init: function() {
-        var data = this.data;
         var _this = this;
         var el = this.el;
+        var data = this.data;
+        data.motion.shades = data.motion.x;
+        //Convert vector schema data into boolean.
+        if(data.motion.y === 0){data.motion.blink = false;}else{data.motion.blink = true;};
         this.blinked = false;
         this.position = {
             yaw: 0,
@@ -690,8 +693,7 @@ AFRAME.registerComponent('a11y', {
             var grd = ctx.createLinearGradient(0, 0, 0, 32);
             var shadeStrength = 1 - data.motion.shades; // 0.65
             grd.addColorStop(0, "rgba(0,0,0,0)");
-            console.log(shadeStrength); // returning NaN which brakes line below 
-            //            grd.addColorStop(shadeStrength, "rgba(0,0,0,1)");
+            grd.addColorStop(shadeStrength, "rgba(0,0,0,1)");
             grd.addColorStop(0.65, "rgba(0,0,0,1)");
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, 32, 32);
@@ -738,13 +740,14 @@ AFRAME.registerComponent('a11y', {
             nav.setAttribute('position', `0 0 -0.5`);
             this.el.appendChild(nav);
             this.nav = nav;
-
+            
             var move = document.createElement("a-entity");
             move.setAttribute('geometry', `primitive: plane; width:0.06; height:0.06;`);
             move.setAttribute('material', `shader:flat; side:back; color:#fff;`);
             move.setAttribute('rotation', `-75 0 0`);
             move.setAttribute('position', `0 -0.08 -0.2`);
             nav.appendChild(move);
+            //END
             var forwardArrow = document.createElement("a-gui-icon-button");
             forwardArrow.setAttribute('height', `0.75`);
             forwardArrow.setAttribute('onclick', `moveForwardFunction`);
