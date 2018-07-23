@@ -23,14 +23,19 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="description" content="GRAVR Accessibility Demo">
     <meta name="apple-mobile-web-app-capable" />
+    <script src="js/resonance-audio.min.js"></script>
     <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
     <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
-    <script src="js/howler.min.js"></script>
     <!--build:css css/styles.min.css-->
     <link rel="stylesheet" href="css/styles.css">
-    <!-- endbuild -->
-    <!--build:js js/main.min.js -->
+    
+    <script src="js/audioScene.js"></script>
     <script src="js/script.js"></script>
+<!-- 
+    <script src="js/sound1.js"></script> -->
+ 
+
+
     <!-- endbuild -->
 </head>
 
@@ -63,12 +68,7 @@
     </div>
     <a-scene style="display:none;">
         <a-assets>
-            <audio id="cafeSnd" src="sounds/cafe.mp3" preload="auto"></audio>
-            <audio id="fountainSnd" src="sounds/fountain.mp3" preload="auto"></audio>
-            <audio id="marketSnd" src="sounds/market.mp3" preload="auto"></audio>
-            <audio id="pigeonSnd" src="sounds/pigeons.mp3" preload="auto"></audio>
-            <audio id="stepSound" src="sounds/steps.mp3" preload="auto"></audio>
-            <audio id="uiSound" src="sounds/ui.mp3" preload="auto"></audio>
+
             <a-mixin id="grid" geometry="primitive:plane; width: 25; height: 25" rotation="-90 0 0" material="src:assets/grid.png; repeat:25 25"></a-mixin>
             <a-mixin id="street_tile" material="color:#867562"></a-mixin>
         </a-assets>
@@ -183,15 +183,18 @@
             <a-cylinder id="fountain-center" height="1.6" radius="0.15" material="shader:flat; color:#6a5844" position="0 0.8 0">
             </a-cylinder>
         </a-entity>
-        <a-entity class="ambientSound" id="fountainwater" geometry="primitive:box; width:2; height:2; depth;" material="color:blue; opacity:1; wireframe:true" position="-2.25 1 0.75" sound="src: url(./sounds/fountain.mp3); loop:true; volume:2;" poi="description:A small fountain in the center of the piazza">
+
+        <a-entity class="ambientSound" id="fountainwater" geometry="primitive:box; width:2; height:2; depth;" material="color:blue; opacity:1; wireframe:true" position="-2.25 1 0.75" poi="description:A small fountain in the center of the piazza">
             <a-entity lookat-cam text="value: A small fountain; align:center" scale="10 10 10" position="0 1 0"></a-entity>
         </a-entity>
+
         <a-entity id="cafe"
             geometry="primitive:box; width:7; height:1; depth:0.1;" 
             material="color:white; opacity:1" 
             position="-9 0.5 -12"
         ></a-entity>
-        <a-entity class="ambientSound" id="cafevoices" geometry="primitive:box; width:7; height:2; depth:1;" material="color:blue; opacity:1; wireframe:true" position="-9 1 -12" sound="src: url(./sounds/cafe.mp3); loop:true; volume:2;" poi="description:People sitting in an outdoor cafe">
+
+        <a-entity class="ambientSound" id="cafevoices" geometry="primitive:box; width:7; height:2; depth:1;" material="color:blue; opacity:1; wireframe:true" position="-9 1 -12" poi="description:People sitting in an outdoor cafe">
             <a-entity lookat-cam text="value: People sitting in an outdoor cafe; align:center" scale="5 5 5" position="0 2 0"></a-entity>
         </a-entity>
         <a-entity id="person"
@@ -199,7 +202,7 @@
             material="color:white; opacity:1" 
             position="-9 0.5 11"
         ></a-entity>
-        <a-entity class="ambientSound" id="pigeons" geometry="primitive:box; width:1; height:3; depth:4;" material="color:blue; opacity:1; wireframe:true" position="-9 1.5 11" sound="src: url(./sounds/pigeons.mp3); loop:true; volume:3;" poi="description:A person feeding pigeons">
+        <a-entity class="ambientSound" id="pigeons" geometry="primitive:box; width:1; height:3; depth:4;" material="color:blue; opacity:1; wireframe:true" position="-9 1.5 11" poi="description:A person feeding pigeons">
             <a-entity lookat-cam text="value: Person feeding pigeons; align:center" scale="5 5 5" position="0 2 0"></a-entity>
         </a-entity>
         <a-entity id="market"
@@ -207,7 +210,7 @@
             material="color:white; opacity:1" 
             position="0 1 20"
         ></a-entity>
-        <a-entity class="ambientSound" id="stand" geometry="primitive:box; width:6; height:3; depth:1;" material="color:blue; opacity:1; wireframe:true" position="0 1.5 20" sound="src: url(./sounds/market.mp3); loop:true; volume:2;" poi="description:A farmers market">
+        <a-entity class="ambientSound" id="stand" geometry="primitive:box; width:6; height:3; depth:1;" material="color:blue; opacity:1; wireframe:true" position="0 1.5 20" poi="description:A farmers market">
             <a-entity lookat-cam text="value: A stand at a farmers market; align:center" scale="5 5 5" position="0 2 0"></a-entity>
         </a-entity>
         <!-- Grid -->
@@ -223,25 +226,30 @@
             <a-entity id="west" beacon="description: West of the Piazza" position="-7 0 0">
             </a-entity>
         </a-entity>
-        <a-entity camera="userHeight:1.6" universal-controls="movementControls: beacon" wasd-controls beacon-controls="mode: animate">
+         
+     <a-entity listener camera="userHeight:1.6" universal-controls="movementControls: beacon" wasd-controls beacon-controls="mode: animate">
             <a-cursor fuse="false"></a-cursor>
         </a-entity>
         <a-entity orientation="pitch: -0.7;"></a-entity>
         <a-entity gravr-avatar></a-entity>
+
+
+
     </a-scene>
 
     <!-- clear screenreader -->
     <div id="a11yblur"></div>
     
     <script type="text/javascript">
+
     // LOADING START -------
 
     var scene = document.querySelector('a-scene');
     var images = document.querySelectorAll("img");
-    var audiofiles = document.querySelectorAll("audio");
+
     var manageAssets = document.querySelector("a-assets");
     var loader = document.querySelector("#loader");
-    var total = images.length + audiofiles.length;
+    var total = images.length
 
     loader.setAttribute("data-total", total);
     loader.style.display = "inline";
@@ -254,11 +262,6 @@
         }
     }
 
-    if (audiofiles) {
-        for (var i = 0; i < audiofiles.length; i++) {
-            audiofiles[i].addEventListener("loadeddata", updateProgressBar);
-        }
-    }
 
     function updateProgressBar() {
         var loader = document.querySelector("#loader");

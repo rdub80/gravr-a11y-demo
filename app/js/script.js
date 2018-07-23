@@ -1,8 +1,6 @@
-var synth = window.speechSynthesis;
-var EPS = 0.1;
-var WALKING, STEP;
 
-// HELPER FUNCTIONS -------
+var EPS = 0.1;
+var WALKING;
 
 // Converts from degrees to radians.
 let degreesToradians = (degrees) => {
@@ -24,11 +22,11 @@ window.addEventListener('load',
     function() {
         let launchVr = document.querySelector("#enter-vr");
         let piazza = document.querySelector("#piazza");
-
         launchVr.addEventListener("click", function() {
             if (piazza) {
-                console.log("Entering Experience");
+                console.log("Starting Experience");
                 ambientSounds();
+                audioContext.resume();
                 speak("You are now standing in the virtual town square ");
             }
         });
@@ -51,38 +49,18 @@ const hideHoverArea = (targetHoverArea) => {
 
 //Play walking sound.
 const walkSound = (volume) => {
-    //    new Audio('../sounds/step.mp3').play();
-    STEP = new Audio('https://cdn.rawgit.com/rdub80/gravr-a11y-demo/cad67274/app/sounds/steps.mp3');
-    STEP.volume = volume;
-    STEP.loop = false;
-    STEP.play();
+   console.log("PLAY-WALK-TRACK")
 }
 
 const ambientSounds = () => {
-    let soundElements = document.querySelectorAll(".ambientSound");
-
-    soundElements.forEach(function(element) {
-        element.components.sound.playSound();
-    })
+    market.play();
+    cafe.play();
+    pigeon.play();
+    fountain.play();
 }
 
 const speak = (words) => {
-    silence();
-
-    let utterThis = new SpeechSynthesisUtterance(words);
-    //var voices = synth.getVoices();
-    //utterThis.voice = voices[0];
-    utterThis.lang = 'en-US';
-    utterThis.name = 'Google US English';
-    utterThis.pitch = 1;
-    utterThis.rate = 1;
-    utterThis.volume = 0.5;
-
-    synth.speak(utterThis);
-}
-
-const silence = () => {
-    synth.cancel();
+    console.log(words)
 }
 
 //Determines if there is significant head movement.
@@ -183,7 +161,7 @@ AFRAME.registerComponent('beacon-controls', {
         if (position.distanceTo(targetPosition) < EPS) {
             //Walking sound
             WALKING = false;
-            STEP.pause();
+        
 
             this.beacon = null;
             this.el.emit('navigation-end', { beacon: beacon });
@@ -254,7 +232,7 @@ AFRAME.registerComponent('beacon', {
         });
 
         this.el.addEventListener('mouseleave', function() {
-            silence();
+            
         });
 
         this.el.addEventListener('click', function() {
@@ -363,7 +341,7 @@ AFRAME.registerComponent('poi', {
         });
 
         this.el.addEventListener('mouseleave', function() {
-            silence();
+        
         });
 
         // this.el.addEventListener('mouseenter', function (evt) {            
@@ -392,6 +370,8 @@ AFRAME.registerComponent('orientation', {
         pitch: { type: 'number', default: 0 }, // max: Math.PI/2, min: - Math.PI/2  
     },
     init: function() {
+        var sceneEl = this.el.sceneEl;
+        this.cameraMatrix4 = new AFRAME.THREE.Matrix4()
         var orientationVisible = false;
         var data = this.data;
         var _this = this;
@@ -594,7 +574,7 @@ AFRAME.registerComponent('orientation', {
         });
 
         this.el.addEventListener('mouseleave', function() {
-            silence();
+            
         });
 
     },
@@ -608,10 +588,14 @@ AFRAME.registerComponent('orientation', {
     },
 
     tick: function() {
+        const cameraEl = this.el.sceneEl.camera.el;
+        this.cameraMatrix4 = cameraEl.object3D.matrixWorld;
         var newPos = new THREE.Vector3();
-        newPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
         this.el.setAttribute('position', newPos.x + ' 0 ' + newPos.z);
-    }
+    },
+    tock () {
+        
+      },
 });
 
 // a11y script comes last
@@ -994,104 +978,3 @@ AFRAME.registerComponent('a11y', {
 });
 
 
-
-
-// var defaultCameraUserHeight; 
-//   function addRenderStartListener () {
-//     document.querySelector('a-scene').addEventListener('renderstart', function (evt) {
-//       var camera = evt.detail.target.camera.el.components.camera;
-//       defaultCameraUserHeight = camera.data.userHeight;
-//     });
-//   }
-//  addRenderStartListener(); //document.body.addEventListener('DOMContentLoaded', addRenderStartListener);
-
-/*
-AFRAME.registerComponent('gravr-avatar', {
-  schema: {
-    color: {default: '#928DAB'},
-    obj: {default: 'assets/basemesh.obj'},
-    offsetPos: { type: 'vec3', default: {x:0, y:0, z:0.15} },
-  },
-  init: function () {
-    var data = this.data;
-    var el = this.el;
-    var _this = this;
-
-    this.userHeight = userHeight = 0; 
-    this.sceneEl = sceneEl = document.querySelector('a-scene');
-
-    //single camera
-    this.cameraEl = cameraEl = document.querySelector('a-entity[camera]');
-    if (!this.cameraEl) {
-      this.cameraEl = document.querySelector('a-camera');
-    } 
-    
-    var worldPos = new THREE.Vector3();
-    worldPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
-
-    this.avatarContainer = avatarContainer = document.createElement("a-entity");
-    avatarContainer.setAttribute('geometry', `primitive: box; width: 1; height: ${userHeight}; depth: 1;`);
-    avatarContainer.setAttribute('material', 'shader: flat; opacity: 0; side:front; color: #fff');
-    avatarContainer.setAttribute('position', `0 ${userHeight/2} 0`);
-    avatarContainer.setAttribute('rotation', '0 0 0');
-    avatarContainer.setAttribute('visible', 'false');
-    el.appendChild(avatarContainer);
-
-    this.avatarModel = avatarModel = document.createElement("a-obj-model");
-    avatarModel.setAttribute('src', data.obj);
-    avatarModel.setAttribute('position', `${data.offsetPos.x} -${userHeight/2} ${data.offsetPos.z}`);
-    avatarModel.setAttribute('rotation', '0 180 0');
-    avatarModel.setAttribute('color', data.color);
-    avatarModel.setAttribute('scale', `1  ${userHeightConvert(userHeight)} 1`);
-    avatarContainer.setAttribute('visible', 'false');
-    avatarContainer.appendChild(avatarModel);
-
-    this.cameraEl.addEventListener('loaded', function (evt) {    
-      _this.userHeight = userHeight = _this.cameraEl.components.camera.data.userHeight;
-      console.log('userHeight from cameraEl: '+ userHeight);
-      _this.setupAvatarHeight(userHeight);
-    });
-
-    this.onEnterVR = this.onEnterVR.bind(this);
-    this.onExitVR = this.onExitVR.bind(this);
-    this.sceneEl.addEventListener('enter-vr', this.onEnterVR);
-    this.sceneEl.addEventListener('exit-vr', this.onExitVR);
-
-  },
-  setupAvatarHeight: function (userHeight) {
-    var data = this.data;
-
-    avatarContainer.setAttribute('position', `0 ${userHeight/2} 0`);
-    avatarContainer.setAttribute('geometry', `height: ${userHeight};`);
-    avatarContainer.setAttribute('visible', 'true');
-
-    avatarModel.setAttribute('position', `${data.offsetPos.x} -${userHeight/2} ${data.offsetPos.z}`);
-    avatarModel.setAttribute('scale', `1  ${userHeightConvert(userHeight)} 1`);
-    avatarContainer.setAttribute('visible', 'true');
-
-  },
-  onEnterVR: function () {
-
-    var cameraEl = this.cameraEl;
-    var userHeight = this.userHeight;
-
-//------//add loop to check if there is tracked HMD height
-
-    setTimeout(function(){
-      cameraEl.setAttribute('position', 'y', userHeight);
-    }, 100 );
-    
-  },
-  onExitVR: function () {
-    console.log("exiting VR with gravr-avatar");
-  },
-  tick: function () {   
-    var avatarPos = new THREE.Vector3();
-    avatarPos.setFromMatrixPosition(this.cameraEl.object3D.matrixWorld);
-    var avatarRot = this.cameraEl.object3D.getWorldRotation();
-    this.el.setAttribute('position', avatarPos.x + ' 0 ' + avatarPos.z);
-    this.el.setAttribute("rotation", "0 " + radiansToDegrees(avatarRot.y) + " 0");
-  }
-});
-
-*/
