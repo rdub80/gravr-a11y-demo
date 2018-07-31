@@ -3,13 +3,20 @@ GRAVR Accessibility Demo
 
 
 ### First Time Setup
+
 clone git repo to folder
+
 $ cd /folder of project
+
 npm install
 
+
 ### Run
+
 $ cd /folder of project
+
 $ gulp
+
 
 --- 
 
