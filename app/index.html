@@ -28,15 +28,17 @@
     <script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v4.1.2/dist/aframe-extras.min.js"></script>
     <!--build:css css/styles.min.css-->
     <link rel="stylesheet" href="css/styles.css">
-    
+      <!--AUDIO SETUP AND ENVIRONMENT SOUNDS-->
     <script src="js/audioScene.js"></script>
+    <!-- <script src="js/compass.js"></script> -->
+    <script src="js/poi.js"></script>
+
+
+     
     <script src="js/script.js"></script>
-<!-- 
-    <script src="js/sound1.js"></script> -->
- 
+    <!-- COMPASS AUDIO PLAYBACK-->
 
 
-    <!-- endbuild -->
 </head>
 
 <body>
@@ -70,6 +72,12 @@
         <a-assets>
             <a-mixin id="grid" geometry="primitive:plane; width: 25; height: 25" rotation="-90 0 0" material="src:assets/grid.png; repeat:25 25"></a-mixin>
             <a-mixin id="street_tile" material="color:#867562"></a-mixin>
+            <audio id="cafeSnd" src="sounds/cafe.wav" preload="auto"></audio>
+            <audio id="fountainSnd" src="sounds/fountain.wav" preload="auto"></audio>
+            <audio id="marketSnd" src="sounds/market.wav" preload="auto"></audio>
+            <audio id="pigeonSnd" src="sounds/pigeons.wav" preload="auto"></audio>
+            <audio id="stepSound" src="sounds/steps.wav" preload="auto"></audio>
+       
         </a-assets>
 
         <!-- north buildings -->
@@ -231,10 +239,17 @@
                 listener
                 movement-controls="controls: beacon"
                 beacon-controls="mode: animate">
-          <a-entity camera
+          <a-entity camera rotation-reader
                 position="0 0 0"
                 look-controls="pointerLockEnabled: true">
-                <a-cursor fuse="false"></a-cursor>                    
+
+                <a-box position"0 0 -.25" ></a-box>
+                <a-box x visible="false" position="0 0 -1.25"></a-box>
+                <a-entity id="compass_on" position=".3 -.25 -1.25" visible="false" text="value: Compass Enabled"></a-entity>
+                <a-entity id="compass_off" position=".3 -.25 -1.25" visible="false" text="value: Compass Disabled"></a-entity>
+                <a-circle id="hover" color="#CCC" position="0 0.1 0" radius="20"></a-circle>
+
+                <a-cursor fuse="true"></a-cursor>                    
           </a-entity>
           
         </a-entity>
@@ -253,11 +268,10 @@
 
     var scene = document.querySelector('a-scene');
     var images = document.querySelectorAll("img");
-
+    var audiofiles = document.querySelectorAll("audio");
     var manageAssets = document.querySelector("a-assets");
     var loader = document.querySelector("#loader");
-    var total = images.length
-
+    var total = images.length + audiofiles.length;
     loader.setAttribute("data-total", total);
     loader.style.display = "inline";
 
@@ -268,6 +282,14 @@
             images[i].addEventListener("load", updateProgressBar);
         }
     }
+
+        if (audiofiles) {
+        for (var i = 0; i < audiofiles.length; i++) {
+            audiofiles[i].addEventListener("loadeddata", updateProgressBar);
+        }
+
+        }
+    
 
 
     function updateProgressBar() {
@@ -360,18 +382,7 @@
 
     // LOADING END -------
     </script>
-    <script type="text/javascript">
-    //PLAY WALKING AUDIO ON CLICK
-    var body = document.querySelector("body");
-
-    body.addEventListener("click", function(evt) {
-        if (evt.isTrusted) {
-            if (WALKING) {
-                walkSound(1);
-            }
-        }
-    })
-    </script>
+   
 </body>
 
 </html>

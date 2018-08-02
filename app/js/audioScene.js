@@ -10,8 +10,8 @@ left: 'transparent',
 right: 'transparent',
 front: 'transparent',
 back: 'transparent',
-down: 'transparent',
-up: 'acoustic-ceiling-tiles',
+down: 'concrete-block-painted',
+up: 'tra',
 };
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext);
@@ -90,3 +90,4 @@ AFRAME.registerComponent('listener', {
         soundScene.setListenerFromMatrix(this.cameraMatrix4)
       },
 });
+

@@ -17,7 +17,6 @@ const roundNumber = (number, decimals) => {
 //Enable Audio. SATISFY MOBILE IOS & ANDROID BROWSER
 //Remove Landing page.
 window.addEventListener('load',
-
     function() {
         let launchVr = document.querySelector("#enter-vr");
         let piazza = document.querySelector("#piazza");
@@ -48,7 +47,7 @@ const hideHoverArea = (targetHoverArea) => {
 
 //Play walking sound.
 const walkSound = (volume) => {
-   console.log("PLAY-WALK-TRACK")
+   steps.play();
 }
 
 const ambientSounds = () => {
@@ -160,7 +159,7 @@ AFRAME.registerComponent('beacon-controls', {
         if (position.distanceTo(targetPosition) < EPS) {
             //Walking sound
             WALKING = false;
-        
+            steps.pause()
 
             this.beacon = null;
             this.el.emit('navigation-end', { beacon: beacon });
@@ -227,7 +226,58 @@ AFRAME.registerComponent('beacon', {
         this.el.appendChild(desc);
 
         this.el.addEventListener('mouseenter', function() {
-            speak("You are looking at the Beacon " + descriptionData);
+            switch (descriptionData) {
+                case ("North of the Piazza"):
+                    beacon_north.play();
+                    cafe_poi.pause();
+                    fountain_poi.pause();
+                    pigeons_poi.pause();
+                    market_poi.pause();
+                    
+                    cafe_poi.currentTime = 0;
+                    fountain_poi.currentTime = 0;
+                    pigeons_poi.currentTime = 0;
+                    market_poi.currentTime = 0;
+                    break;
+                case ("South of the Piazza"):
+                    beacon_south.play();
+                    cafe_poi.pause();
+                    fountain_poi.pause();
+                    pigeons_poi.pause();
+                    market_poi.pause();
+                    cafe_poi.currentTime = 0;
+                    fountain_poi.currentTime = 0;
+                    pigeons_poi.currentTime = 0;
+                    market_poi.currentTime = 0;
+                    break;
+                
+                case ("West of the Piazza"):
+                    beacon_west.play();
+                    cafe_poi.pause();
+                    fountain_poi.pause();
+                    pigeons_poi.pause();
+                    market_poi.pause();
+                    cafe_poi.currentTime = 0;
+                    fountain_poi.currentTime = 0;
+                    pigeons_poi.currentTime = 0;
+                    market_poi.currentTime = 0;
+                    break;
+
+                case ("East of the Piazza"):
+                    beacon_east.play();
+                    cafe_poi.pause();
+                    fountain_poi.pause();
+                    pigeons_poi.pause();
+                    market_poi.pause();
+                    cafe_poi.currentTime = 0;
+                    fountain_poi.currentTime = 0;
+                    pigeons_poi.currentTime = 0;
+                    market_poi.currentTime = 0;
+                    break;
+        
+                default:
+                    break;
+            }
         });
 
         this.el.addEventListener('mouseleave', function() {
@@ -236,7 +286,7 @@ AFRAME.registerComponent('beacon', {
 
         this.el.addEventListener('click', function() {
             WALKING = true;
-            speak("You're walking towards the Beacon " + descriptionData);
+            steps.play();
         });
 
     },
@@ -336,7 +386,38 @@ AFRAME.registerComponent('poi', {
         var pointOfInterest = this.data.description;
 
         this.el.addEventListener('mouseenter', function() {
-            speak("You are looking at " + pointOfInterest);
+            switch(pointOfInterest) {
+                case ("People sitting in an outdoor cafe"):
+                    cafe_poi.play();
+                    beacon_eastStop();
+                    beacon_northStop(); 
+                    beacon_southStop();  
+                    beacon_westStop();
+                    break;
+                case ("A small fountain in the center of the piazza"):
+                    fountain_poi.play();
+                    beacon_eastStop();
+                    beacon_northStop(); 
+                    beacon_southStop();  
+                    beacon_westStop();
+                    break;
+                case ("A person feeding pigeons"):
+                    pigeons_poi.play();
+                    beacon_eastStop();
+                    beacon_northStop(); 
+                    beacon_southStop();  
+                    beacon_westStop();
+                    break;
+                case ("A farmers market"):
+          
+                    market_poi.play();
+                    beacon_eastStop();
+                    beacon_northStop(); 
+                    beacon_southStop();  
+                    beacon_westStop();
+                    break;
+                default:
+            }
         });
 
         this.el.addEventListener('mouseleave', function() {
@@ -381,9 +462,7 @@ AFRAME.registerComponent('orientation', {
         if (!cameraEl) {
             cameraEl = document.querySelector('a-camera');
         };
-        console.log('cameraEl');
-        console.log(cameraEl);
-        console.dir(cameraEl);
+
 
         cameraEl.addEventListener('componentchanged', function(evt) {
             if (evt.detail.name === 'rotation') {
@@ -599,3 +678,4 @@ AFRAME.registerComponent('orientation', {
     }
 
 });
+
