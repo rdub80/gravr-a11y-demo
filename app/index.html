@@ -31,7 +31,7 @@
       <!--AUDIO SETUP AND ENVIRONMENT SOUNDS-->
     <script src="js/audioScene.js"></script>
     <!-- <script src="js/compass.js"></script> -->
-    <script src="js/poi.js"></script>
+    <!-- <script src="js/poi.js"></script> -->
 
 
      
@@ -68,14 +68,19 @@
             </section>
         </div>
     </div>
-    <a-scene style="display:none;">
+    <a-scene stats style="display:none;">
         <a-assets>
             <a-mixin id="street_tile" material="color:#867562"></a-mixin>
             <audio id="cafeSnd" src="sounds/cafe.wav" preload="auto"></audio>
-            <audio id="fountainSnd" src="sounds/fountain.wav" preload="auto"></audio>
-            <audio id="marketSnd" src="sounds/market.wav" preload="auto"></audio>
-            <audio id="pigeonSnd" src="sounds/pigeons.wav" preload="auto"></audio>
+            <audio id="fountainSnd" src="sounds/fountain_poi.mp3" preload="auto"></audio>
+            <audio id="marketSnd" src="sounds/market_poi.mp3" preload="auto"></audio>
+            <audio id="pigeonSnd" src="sounds/pigeons_poi.mp3" preload="auto"></audio>
             <audio id="stepSound" src="sounds/steps.wav" preload="auto"></audio>
+            <audio id="cafeSnd" src="sounds/beacon_east.mp3" preload="auto"></audio>
+            <audio id="fountainSnd" src="sounds/beacon_north.mp3" preload="auto"></audio>
+            <audio id="marketSnd" src="sounds/beacon_south.mp3" preload="auto"></audio>
+            <audio id="pigeonSnd" src="sounds/beacon_west.mp3" preload="auto"></audio>
+          
        
         </a-assets>
 
@@ -243,7 +248,7 @@
                 look-controls="pointerLockEnabled: true">
 
                 <a-box position"0 0 -.25" ></a-box>
-                <a-box x visible="false" position="0 0 -1.25"></a-box>
+                <a-box x visible="false" position="-.01 0 -3.25"></a-box>
                 <a-entity id="compass_on" position=".3 -.25 -1.25" visible="false" text="value: Compass Enabled"></a-entity>
                 <a-entity id="compass_off" position=".3 -.25 -1.25" visible="false" text="value: Compass Disabled"></a-entity>
                 <a-circle id="hover" color="#CCC" position="0 0.1 0" radius="20"></a-circle>
