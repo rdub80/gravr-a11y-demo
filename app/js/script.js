@@ -1,8 +1,3 @@
-/* global AFRAME, THREE */
-if (typeof AFRAME === 'undefined') {
-  throw new Error('Component attempted to register before AFRAME was available.');
-}
-
 var EPS = 0.1;
 var WALKING;
 
@@ -683,53 +678,4 @@ AFRAME.registerComponent('orientation', {
     }
 
 });
-
-
-// Converts userheight for basemesh obj.
-var userHeightConvert = function(userHeight) {
-    return userHeight/1.6 * 0.95;
-};
-//Component rotating on the Y-axes with the camera.
-AFRAME.registerComponent('avatar', {
-    schema: {
-        color: {default: '#928DAB'},
-        obj: {default: 'assets/avatar.obj'},
-        offsetPos: { type: 'vec3', default: {x:0, y:0, z:0} },
-    },
-    init: function () { 
-        var data = this.data;
-        var el = this.el;
-        var _this = this;
-        this.userHeight = userHeight = 1.6; 
-
-        this.avatarContainer = avatarContainer = document.createElement("a-entity");
-        avatarContainer.setAttribute('geometry', `primitive: box; width: 1; height: ${userHeight}; depth:1;`);
-        avatarContainer.setAttribute('material', 'shader: flat; opacity: 0; color: #fff');
-        avatarContainer.setAttribute('position', `0 ${userHeight/2} 0`);
-        avatarContainer.setAttribute('rotation', '0 0 0');
-        el.appendChild(avatarContainer);
-
-        var avatarModel = document.createElement("a-obj-model");
-        avatarModel.setAttribute('src', data.obj);
-        avatarModel.setAttribute('position', `${data.offsetPos.x} -${userHeight/2} ${data.offsetPos.z}`);
-        avatarModel.setAttribute('rotation', '0 180 0');
-        avatarModel.setAttribute('color', data.color);
-        avatarModel.setAttribute('scale', `1  ${userHeightConvert(userHeight)} 1`);
-        avatarContainer.appendChild(avatarModel);
-
-        var avatarboundary = document.createElement("a-entity");
-        avatarboundary.setAttribute('geometry', 'primitive: cylinder; radius: 0.4; height: 0.1; segmentsHeight:1; segmentsRadial:18;');
-        avatarboundary.setAttribute('material', 'shader: flat; opacity: 0.3; color: red');
-        avatarboundary.setAttribute('position', `0 -${userHeight/2} 0`);
-        avatarContainer.appendChild(avatarboundary);
-
-    },
-    tick: function () {
-        const cameraEl = this.el.sceneEl.camera.el;
-        var rotation = cameraEl.object3D.getWorldRotation();
-        this.el.setAttribute("rotation", "0 " + (Math.round(THREE.Math.radToDeg(rotation.y) * 100) / 100) + " 0");
-    }
-});
-
-
 
