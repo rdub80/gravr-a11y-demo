@@ -1,5 +1,5 @@
 {
-  "name": "GRAVR_API_demos",
+  "name": "GRAVR_A11Y_Demo",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rdub80/gravr_api_demos.git"
+    "url": "git+https://github.com/rdub80/gravr_a11y_demo.git"
   },
   "author": "Roland Dubois",
   "license": "ISC",
